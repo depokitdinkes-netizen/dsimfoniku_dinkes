@@ -1,0 +1,141 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anybody:ital,wght@0,100..900;1,100..900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@supports not (color: oklch(0 0 0)) {
+    :root {
+        color-scheme: light;
+        --fallback-p: #285fd9;
+        --fallback-pc: #ffffff;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            color-scheme: dark;
+            --fallback-p: #285fd9;
+            --fallback-pc: #ffffff;
+        }
+    }
+}
+
+* {
+    font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none;
+}
+
+html {
+    @apply scroll-smooth;
+}
+
+.btn {
+    @apply rounded-md;
+    @apply font-bold;
+}
+
+.btn-rounded-full {
+    @apply rounded-full;
+}
+
+.input,
+.select,
+.modal-box,
+.alert,
+.textarea,
+.file-input {
+    @apply rounded-md;
+}
+
+.screen-fit {
+    @apply min-h-screen;
+    @apply flex;
+    @apply flex-col;
+    @apply justify-center;
+}
+
+.container-fit {
+    @apply container;
+    @apply max-w-6xl;
+    @apply mx-auto;
+    @apply px-5;
+}
+
+.section {
+    @apply py-14;
+    @apply md:py-20;
+}
+
+.section-md {
+    @apply py-10;
+    @apply md:py-14;
+}
+
+.h-section {
+    @apply font-bold;
+    @apply text-2xl;
+    @apply md:text-4xl;
+}
+
+.p-section {
+    @apply leading-8;
+    @apply md:text-lg;
+}
+
+.input-group {
+    @apply flex;
+    @apply flex-col;
+    @apply gap-1;
+}
+
+.input-group label {
+    @apply text-sm;
+    @apply font-medium;
+}
+
+.input-group input[type="text"],
+.input-group input[type="date"],
+.input-group input[type="password"],
+.input-group input[type="email"],
+.input-group input[type="number"] {
+    @apply input;
+    @apply input-bordered;
+}
+
+.input-group textarea {
+    @apply textarea;
+    @apply textarea-bordered;
+    @apply text-base;
+}
+
+.input-group input[type="text"]:disabled,
+.input-group input[type="date"]:disabled,
+.input-group input[type="number"]:disabled,
+.input-group select:disabled {
+    @apply text-black;
+}
+
+/* Error styles for form validation */
+.input-error {
+    @apply border-red-500;
+    @apply border-2;
+}
+
+.select-error {
+    @apply border-red-500;
+    @apply border-2;
+}
+
+.textarea-error {
+    @apply border-red-500;
+    @apply border-2;
+}
+
+.text-error {
+    @apply text-red-500;
+    @apply text-xs;
+    @apply mt-1;
+}
