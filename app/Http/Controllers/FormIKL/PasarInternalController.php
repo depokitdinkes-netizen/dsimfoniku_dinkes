@@ -375,6 +375,12 @@ class PasarInternalController extends Controller {
     public function store(Request $request)
     {
         try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                Log::warning('Unauthenticated user attempted to store Pasar Internal data');
+                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            }
+
             Log::info('PasarInternalController store called', [
                 'user_id' => Auth::id(),
                 'request_data' => $request->except(['_token'])
@@ -484,6 +490,12 @@ class PasarInternalController extends Controller {
     public function update(Request $request, PasarInternal $pasarInternal)
     {
         try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                Log::warning('Unauthenticated user attempted to update Pasar Internal data', ['pasar_internal_id' => $pasarInternal->id]);
+                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            }
+
             Log::info('PasarInternalController update called', [
                 'pasar_internal_id' => $pasarInternal->id,
                 'user_id' => Auth::id(),

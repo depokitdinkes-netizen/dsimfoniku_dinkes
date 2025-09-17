@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class GeraiKantinController extends Controller
 {
@@ -269,6 +270,14 @@ class GeraiKantinController extends Controller
      */
     public function store(Request $request)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to submit Gerai Kantin form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([
@@ -327,6 +336,14 @@ class GeraiKantinController extends Controller
      */
     public function update(Request $request, GeraiKantin $geraiKantin)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to update Gerai Kantin form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([

@@ -295,6 +295,12 @@ class AkomodasiLainController extends Controller
     public function store(Request $request)
     {
         try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                Log::warning('Unauthenticated user attempted to store AkomodasiLain data');
+                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            }
+
             // Validasi input komprehensif
             $validatedData = $request->validate([
                 'subjek' => 'required|string|max:255',
@@ -438,6 +444,12 @@ class AkomodasiLainController extends Controller
     public function update(Request $request, AkomodasiLain $akomodasiLain)
     {
         try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                Log::warning('Unauthenticated user attempted to update AkomodasiLain data', ['akomodasi_lain_id' => $akomodasiLain->id]);
+                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            }
+
             // Validasi input komprehensif
             $validatedData = $request->validate([
                 'subjek' => 'required|string|max:255',

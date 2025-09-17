@@ -674,6 +674,12 @@ class PasarController extends Controller {
     public function store(Request $request)
     {
         try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                Log::warning('Unauthenticated user attempted to store Pasar data');
+                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            }
+
             Log::info('PasarController store called', [
                 'user_id' => Auth::id(),
                 'request_data' => $request->except(['_token'])
@@ -859,6 +865,12 @@ class PasarController extends Controller {
     public function update(Request $request, Pasar $pasar)
     {
         try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                Log::warning('Unauthenticated user attempted to update Pasar data', ['pasar_id' => $pasar->id]);
+                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            }
+
             Log::info('PasarController update called', [
                 'pasar_id' => $pasar->id,
                 'user_id' => Auth::id(),

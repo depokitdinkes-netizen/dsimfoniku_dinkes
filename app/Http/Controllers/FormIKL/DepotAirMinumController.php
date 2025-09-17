@@ -509,6 +509,15 @@ class DepotAirMinumController extends Controller
 
     public function store(Request $request)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to submit Depot Air Minum form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
+
         try {
             Log::info('Depot Air Minum form submission started', [
                 'user_id' => Auth::id(),
@@ -628,6 +637,15 @@ class DepotAirMinumController extends Controller
 
     public function update(Request $request, DepotAirMinum $depotAirMinum)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to update Depot Air Minum form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
+
         try {
             Log::info('Depot Air Minum update process started', [
                 'user_id' => Auth::id(),

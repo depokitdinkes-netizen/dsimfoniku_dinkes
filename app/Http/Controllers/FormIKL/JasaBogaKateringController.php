@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -1171,6 +1172,15 @@ class JasaBogaKateringController extends Controller
 
     public function store(Request $request)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to submit Jasa Boga Katering form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
+        
         // Validasi input
         $request->validate([
             'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
@@ -1363,6 +1373,14 @@ class JasaBogaKateringController extends Controller
 
     public function update(Request $request, JasaBogaKatering $jasaBogaKatering)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to update Jasa Boga Katering form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([

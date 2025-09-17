@@ -18,6 +18,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class KantinController extends Controller
 {
@@ -390,6 +391,14 @@ class KantinController extends Controller
      */
     public function store(Request $request)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to submit Kantin form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([
@@ -462,6 +471,14 @@ class KantinController extends Controller
      */
     public function update(Request $request, Kantin $kantin)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to update Kantin form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([

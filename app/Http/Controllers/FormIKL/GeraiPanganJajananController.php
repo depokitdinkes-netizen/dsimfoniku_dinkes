@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -270,6 +271,14 @@ class GeraiPanganJajananController extends Controller
 
     public function store(Request $request)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to submit Gerai Pangan Jajanan form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([
@@ -329,6 +338,14 @@ class GeraiPanganJajananController extends Controller
 
     public function update(Request $request, GeraiPanganJajanan $geraiPanganJajanan)
     {
+        // Cek autentikasi user
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to update Gerai Pangan Jajanan form', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+        }
         
         // Validasi input
         $request->validate([

@@ -179,6 +179,10 @@ class PenyimpananAirHujanController extends Controller {
     }
 
     public function store(Request $request) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+        }
         
         // Validasi input
         $request->validate([
@@ -248,6 +252,10 @@ class PenyimpananAirHujanController extends Controller {
      * Update the specified resource in storage.
      */
     public function update(Request $request, PenyimpananAirHujan $penyimpananAirHujan) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+        }
         
         // Validasi input
         $request->validate([

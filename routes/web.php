@@ -172,7 +172,7 @@ Route::resource('tempat-olahraga', TempatOlahragaController::class)->only(['edit
 Route::resource('tempat-olahraga', TempatOlahragaController::class)->only(['destroy'])->middleware('superadmin');
 
 // pasar
-Route::resource('pasar', PasarController::class);
+Route::resource('pasar', PasarController::class)->middleware('admin-own-data');
 Route::resource('pasar', PasarController::class)->only(['edit', 'update'])->middleware('not-user');
 Route::resource('pasar', PasarController::class)->only(['destroy'])->middleware('superadmin');
 
