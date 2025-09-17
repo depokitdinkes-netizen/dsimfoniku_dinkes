@@ -71,7 +71,7 @@
                 <li><a href="{{ route('perlindungan-mata-air.create') }}" class="group">                Perlindungan Mata Air <i class="ri-corner-down-right-line hidden group-hover:inline"></i></a></li>
                 <li><a href="{{ route('perpipaan-non-pdam.create') }}" class="font-semibold group">     Perpipaan Non PDAM <i class="ri-corner-down-right-line hidden group-hover:inline"></i></a></li>
                 <li><a href="{{ route('perpipaan.create') }}" class="group">                            Perpipaan PDAM <i class="ri-corner-down-right-line hidden group-hover:inline"></i></a></li>
-                <li><a href="{{ route('sumur-bor-pompa.create') }}" class="font-semibold group">        Sumur Bor dengan Pompa Tangan <i class="ri-corner-down-right-line hidden group-hover:inline"></i></a></li>
+                <li><a href="{{ route('sumur-bor-pompa.create') }}" class="font-semibold group">        Sumur BOR/Sumur Gali Dengan Mesin/Pompa Tangan <i class="ri-corner-down-right-line hidden group-hover:inline"></i></a></li>
                 <li><a href="{{ route('sumur-gali.create') }}" class="group">                           Sumur Gali dengan Kerekan <i class="ri-corner-down-right-line hidden group-hover:inline"></i></a></li>
             </ul>
         </div>
