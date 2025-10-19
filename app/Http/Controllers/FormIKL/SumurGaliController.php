@@ -257,6 +257,11 @@ class SumurGaliController extends Controller {
     }
 
     public function edit(SumurGali $sumurGali) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.sam.sumur-gali.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -334,6 +339,11 @@ class SumurGaliController extends Controller {
     }
 
     public function destroy(String $id) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $sumurGali = SumurGali::where('id', $id)->withTrashed()->first();
 
         if ($sumurGali['deleted_at']) {

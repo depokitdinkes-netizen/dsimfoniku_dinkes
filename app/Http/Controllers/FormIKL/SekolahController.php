@@ -469,8 +469,21 @@ class SekolahController extends Controller
                 }
             }
             
-            // Add auth user ID
-            $data['user_id'] = Auth::id();
+            // Check if user is guest or authenticated
+            if (Auth::check()) {
+                $data['user_id'] = Auth::id();
+                Log::info('Authenticated user creating sekolah form', [
+                    'user_id' => Auth::id(),
+                    'user_email' => Auth::user()->email ?? 'N/A'
+                ]);
+            } else {
+                $data['user_id'] = 3; // Guest user ID
+                Log::info('Guest user creating sekolah form', [
+                    'user_id' => 3,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent()
+                ]);
+            }
 
             foreach ($this->formPenilaianName() as $column) {
                 $data[$column] = $request->input($column, '0');
@@ -577,6 +590,11 @@ class SekolahController extends Controller
      */
     public function edit(Sekolah $sekolah)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.sekolah.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -821,6 +839,11 @@ class SekolahController extends Controller
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $sekolah = Sekolah::where('id', $id)->withTrashed()->first();
 
         if ($sekolah['deleted_at']) {

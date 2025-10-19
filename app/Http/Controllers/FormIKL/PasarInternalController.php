@@ -375,14 +375,8 @@ class PasarInternalController extends Controller {
     public function store(Request $request)
     {
         try {
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                Log::warning('Unauthenticated user attempted to store Pasar Internal data');
-                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
-            }
-
             Log::info('PasarInternalController store called', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'request_data' => $request->except(['_token'])
             ]);
 
@@ -401,8 +395,8 @@ class PasarInternalController extends Controller {
             Log::info('Validation passed for Pasar Internal store');
 
             $data = $request->all();
-            // Add auth user ID
-            $data['user_id'] = Auth::id();
+            // Set user_id: 3 for guest, actual user_id for logged users
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
 
             // Handle instansi-lainnya logic
             if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
@@ -426,7 +420,7 @@ class PasarInternalController extends Controller {
 
             if (!$insert) {
                 Log::error('Failed to create Pasar Internal record - insert returned false', [
-                    'user_id' => Auth::id(),
+                    'user_id' => Auth::check() ? Auth::id() : 3,
                     'data' => $data
                 ]);
                 return redirect(route('inspection'))->with('error', 'penilaian / inspeksi Pasar Internal gagal dibuat, silahkan coba lagi');
@@ -438,14 +432,14 @@ class PasarInternalController extends Controller {
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation failed in Pasar Internal store', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'errors' => $e->errors(),
                 'request_data' => $request->except(['_token'])
             ]);
             return redirect()->back()->withErrors($e->errors())->withInput()->with('error', 'Data yang dimasukkan tidak valid. Silakan periksa kembali form Anda.');
         } catch (\Exception $e) {
             Log::error('Exception occurred in Pasar Internal store', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'error_message' => $e->getMessage(),
                 'error_trace' => $e->getTraceAsString(),
                 'request_data' => $request->except(['_token'])
@@ -475,6 +469,12 @@ class PasarInternalController extends Controller {
      */
     public function edit(PasarInternal $pasarInternal)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to access Pasar Internal edit form', ['pasar_internal_id' => $pasarInternal->id]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.pasar-internal.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -490,15 +490,9 @@ class PasarInternalController extends Controller {
     public function update(Request $request, PasarInternal $pasarInternal)
     {
         try {
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                Log::warning('Unauthenticated user attempted to update Pasar Internal data', ['pasar_internal_id' => $pasarInternal->id]);
-                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
-            }
-
             Log::info('PasarInternalController update called', [
                 'pasar_internal_id' => $pasarInternal->id,
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'action' => $request->input('action'),
                 'request_data' => $request->except(['_token'])
             ]);
@@ -560,7 +554,7 @@ class PasarInternalController extends Controller {
                 if (!$insert) {
                     Log::error('Failed to duplicate Pasar Internal record', [
                         'original_id' => $pasarInternal->id,
-                        'user_id' => Auth::id(),
+                        'user_id' => Auth::check() ? Auth::id() : 3,
                         'data' => $data
                     ]);
                     return redirect(route('inspection'))->with('error', 'penilaian / inspeksi Pasar Internal gagal dibuat, silahkan coba lagi');
@@ -586,7 +580,7 @@ class PasarInternalController extends Controller {
             if (!$update) {
                 Log::error('Update failed for pasar internal', [
                     'pasar_internal_id' => $pasarInternal->id,
-                    'user_id' => Auth::id(),
+                    'user_id' => Auth::check() ? Auth::id() : 3,
                     'data' => $data
                 ]);
                 return redirect()->back()->with('error', 'form informasi dan penilaian Pasar Internal gagal diubah');
@@ -598,7 +592,7 @@ class PasarInternalController extends Controller {
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation failed in Pasar Internal update', [
                 'pasar_internal_id' => $pasarInternal->id,
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'errors' => $e->errors(),
                 'request_data' => $request->except(['_token'])
             ]);
@@ -606,7 +600,7 @@ class PasarInternalController extends Controller {
         } catch (\Exception $e) {
             Log::error('Exception occurred in Pasar Internal update', [
                 'pasar_internal_id' => $pasarInternal->id,
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'error_message' => $e->getMessage(),
                 'error_trace' => $e->getTraceAsString(),
                 'request_data' => $request->except(['_token'])
@@ -620,6 +614,12 @@ class PasarInternalController extends Controller {
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to destroy Pasar Internal data', ['pasar_internal_id' => $id]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $pasarInternal = PasarInternal::where('id', $id)->withTrashed()->first();
 
         if ($pasarInternal['deleted_at']) {

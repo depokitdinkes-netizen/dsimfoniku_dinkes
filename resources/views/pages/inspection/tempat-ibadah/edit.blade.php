@@ -159,46 +159,8 @@
 </form>
 
 <x-modal.get-lat-long />
-
+<div data-window-var="tempatIbadahFormData" data-kecamatan="{{ $form_data['kecamatan'] ?? '' }}" data-kelurahan="{{ $form_data['kelurahan'] ?? '' }}" style="display:none;"></div>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                let options = "";
-
-                kecamatan.forEach((el) => {
-                    options += `<option value="${el.name}" ${kecVal == el.name && 'selected'}>${el.name}</option>`;
-                });
-
-                $("#kec").html('<option>Pilih Kelurahan</option>');
-                $("#kec").html($("#kec").html() + options);
-
-                let kecId = kecamatan.find((el) => el.name == kecVal).id;
-
-                fetch(
-                        `https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`
-                    )
-                    .then((response) => response.json())
-                    .then((villages) => {
-                        let options = "";
-                        villages.forEach((el) => {
-                            options += `<option value="${el.name}" ${kelVal == el.name && 'selected'}>${el.name}</option>`;
-                        });
-
-                        $("#kel").html($("#kel").html() + options);
-                    });
-
-                clearInterval(checkKec);
-            }
-        }, 500)
-    });
-
-    }
-
-    // Auto-calculate on page load if issued date already filled</script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
+<script src="{{ asset('js/inspection/tempat-ibadah/edit.js') }}"></script>
 @endsection

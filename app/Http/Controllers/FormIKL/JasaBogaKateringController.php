@@ -729,6 +729,7 @@ class JasaBogaKateringController extends Controller
                     'rencana' => $item['rencana-tindak-lanjut'],
                     'pengelola' => $item['pengelola'],
                     'pemeriksa' => $item['nama-pemeriksa'],
+                    'is_superadmin' => Auth::check() && Auth::user()->role === 'superadmin',
                 ])->download('BAIKL_JASA_BOGA_KATERING_' . str_pad($item['id'], 5, '0', STR_PAD_LEFT) . '.pdf');
             case 'excel':
                 return Excel::download(new class implements FromCollection, WithHeadings {
@@ -1172,15 +1173,6 @@ class JasaBogaKateringController extends Controller
 
     public function store(Request $request)
     {
-        // Cek autentikasi user
-        if (!Auth::check()) {
-            Log::warning('Unauthenticated user attempted to submit Jasa Boga Katering form', [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]);
-            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
-        }
-        
         // Validasi input
         $request->validate([
             'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
@@ -1195,10 +1187,8 @@ class JasaBogaKateringController extends Controller
             $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
         }
 
-        
-        
-        // Tambahkan user_id dari user yang sedang login
-        $data['user_id'] = Auth::id();
+        // Set user_id: 3 for guest, actual user_id for logged users
+        $data['user_id'] = Auth::check() ? Auth::id() : 3;
         $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / ['A' => 358, 'B' => 416, 'C' => 420][strtoupper($request->input('u009', 'A'))]) * 100);
 
         $insert = JasaBogaKatering::create($data);
@@ -1231,6 +1221,7 @@ class JasaBogaKateringController extends Controller
 
     public function edit(JasaBogaKatering $jasaBogaKatering)
     {
+
         $formPenilaian = $this->formPenilaian();
 
         switch ($jasaBogaKatering->u009) {
@@ -1373,15 +1364,6 @@ class JasaBogaKateringController extends Controller
 
     public function update(Request $request, JasaBogaKatering $jasaBogaKatering)
     {
-        // Cek autentikasi user
-        if (!Auth::check()) {
-            Log::warning('Unauthenticated user attempted to update Jasa Boga Katering form', [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]);
-            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
-        }
-        
         // Validasi input
         $request->validate([
             'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
@@ -1408,7 +1390,7 @@ class JasaBogaKateringController extends Controller
 
         if ($data['action'] == 'duplicate') {
             // Add auth user ID for duplicate action
-            $data['user_id'] = Auth::id();
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
 
             // For duplicate, preserve the original values if current values are empty
             if (empty($data['kelurahan']) && !empty($jasaBogaKatering->kelurahan)) {
@@ -1444,6 +1426,12 @@ class JasaBogaKateringController extends Controller
 
     public function destroy(String $id)
     {
+        // Restrict guest account from deleting
+        if (!Auth::check()) {
+            Log::warning('Guest user attempted to delete jasa boga katering data', ['user_id' => 3]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk menghapus data inspeksi');
+        }
+
         $jasaBogaKatering = JasaBogaKatering::where('id', $id)->withTrashed()->first();
 
         if ($jasaBogaKatering['deleted_at']) {

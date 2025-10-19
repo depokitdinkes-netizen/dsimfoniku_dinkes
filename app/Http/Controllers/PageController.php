@@ -52,10 +52,11 @@ class PageController extends Controller {
             'operasi',      // [15] status operasi
             'slhs_expire_date',   // [16] SLHS expire date
             'slhs_issued_date',   // [17] SLHS issued date
+            'user_id',      // [18] user_id untuk ownership
         ];
 
-        // Untuk guest, tampilkan semua data
-        // Untuk user yang login, filter berdasarkan role
+        // Untuk guest dan admin, tampilkan semua data
+        // Admin bisa melihat semua tapi hanya bisa edit/delete miliknya sendiri
         $isAdmin = false;
         $userId = null;
         
@@ -63,6 +64,12 @@ class PageController extends Controller {
             $user = Auth::user();
             $isAdmin = $user->role === 'ADMIN';
             $userId = $user->id;
+            
+            // Admin bisa melihat semua data, jadi tidak perlu filter di sini
+            // Filtering hanya untuk aksi edit/delete akan dilakukan di view dan middleware
+            if ($isAdmin) {
+                $isAdmin = false; // Set false agar tidak difilter di method getData
+            }
         }
 
         return collect(array_merge(
@@ -558,6 +565,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'],
             $table[17] => $item['slhs_issued_date'],
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -586,6 +594,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'],
             $table[17] => $item['slhs_issued_date'],
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -614,6 +623,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -642,6 +652,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'], // Add user_id for ownership check
         ])->toArray();
     }
 
@@ -670,6 +681,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'], // Add user_id for ownership check
         ])->toArray();
     }
 
@@ -698,6 +710,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'], // Add user_id for ownership check
         ])->toArray();
     }
 
@@ -754,6 +767,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -782,6 +796,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -810,6 +825,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -838,6 +854,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -866,6 +883,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -894,6 +912,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -922,6 +941,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'],
             $table[17] => $item['slhs_issued_date'],
+            $table[18] => $item['user_id'], // Add user_id for ownership check
         ])->toArray();
     }
 
@@ -950,6 +970,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -978,6 +999,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'], // Tambahkan user_id untuk ownership check
         ])->toArray();
     }
 
@@ -1006,6 +1028,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -1034,6 +1057,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -1062,6 +1086,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -1090,6 +1115,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -1118,6 +1144,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -1226,6 +1253,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => $item['slhs_expire_date'] ?? null,
             $table[17] => $item['slhs_issued_date'] ?? null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 
@@ -1254,6 +1282,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => null,
             $table[17] => null,
+            $table[18] => $item['user_id'], // Add user_id for ownership check
         ])->toArray();
     }
 
@@ -1282,6 +1311,7 @@ class PageController extends Controller {
             $table[15] => $item['status-operasi'],
             $table[16] => null,
             $table[17] => null,
+            $table[18] => $item['user_id'],
         ])->toArray();
     }
 }

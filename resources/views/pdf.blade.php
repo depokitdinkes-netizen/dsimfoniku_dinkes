@@ -2,13 +2,31 @@
 <html>
 
 <body style="font-family: Arial, sans-serif;">
-    @auth
+    @if(isset($is_superadmin) && $is_superadmin)
+    {{-- Kop Surat Dinas Kesehatan untuk Superadmin --}}
     <table border="0" style="margin: 0 auto; width: auto;">
         <tr>
-            <td style="width: 33.33%; vertical-align: middle; text-align: right;">
-                <img src="logo/kota-depok-logo.png" alt="Logo" style="height: 0.91in; padding-right: 50px;">
+            <td style="width: 25%; vertical-align: middle; text-align: right;">
+                <img src="logo/kota-depok-logo.png" alt="Logo" style="height: 0.91in; padding-right: 80px;">
             </td>
-            <td style="width: 66.67%; vertical-align: middle; text-align: center;">
+            <td style="width: 75%; vertical-align: middle; text-align: center;">
+                <div style="font-size: 14pt; font-family: Arial, sans-serif;">PEMERINTAH KOTA DEPOK</div>
+                <div style="font-size: 16pt; font-family: Arial, sans-serif; font-weight: bold;">DINAS KESEHATAN</div>
+                <div style="font-size: 16pt; font-family: Arial, sans-serif; font-weight: bold;">KOTA DEPOK</div>
+                <div style="font-size: 12pt; font-family: Arial, sans-serif;">Jl. Margonda Raya No. 54 Depok 16424</div>
+                <div style="font-size: 12pt; font-family: Arial, sans-serif;">Telp. (021) 7720002, Fax. (021) 7720002</div>
+            </td>
+        </tr>
+    </table>
+    <hr>
+    @elseif(Auth::check())
+    {{-- Kop Surat User Biasa --}}
+    <table border="0" style="margin: 0 auto; width: auto;">
+        <tr>
+            <td style="width: 25%; vertical-align: middle; text-align: right;">
+                <img src="logo/kota-depok-logo.png" alt="Logo" style="height: 0.91in; padding-right: 80px;">
+            </td>
+            <td style="width: 75%; vertical-align: middle; text-align: center;">
             <div style="font-size: {{ Auth::user()->sizebaris1 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris1 }}</div>
             <div style="font-size: {{ Auth::user()->sizebaris2 }}; font-family: Arial, sans-serif; font-weight: bold;">{{ Auth::user()->baris2 }}</div>
             <div style="font-size: {{ Auth::user()->sizebaris3 }}; font-family: Arial, sans-serif; font-weight: bold;">{{ Auth::user()->baris3 }}</div>
@@ -16,14 +34,29 @@
             @if(Auth::user()->baris5)
             <div style="font-size: {{ Auth::user()->sizebaris5 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris5 }}</div>
             @endif
+            @if(Auth::user()->baris6)
+            <div style="font-size: {{ Auth::user()->sizebaris6 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris6 }}</div>
+            @endif
+            @if(Auth::user()->baris7)
+            <div style="font-size: {{ Auth::user()->sizebaris7 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris7 }}</div>
+            @endif
+            @if(Auth::user()->baris8)
+            <div style="font-size: {{ Auth::user()->sizebaris8 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris8 }}</div>
+            @endif
+            @if(Auth::user()->baris9)
+            <div style="font-size: {{ Auth::user()->sizebaris9 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris9 }}</div>
+            @endif
+            @if(Auth::user()->baris10)
+            <div style="font-size: {{ Auth::user()->sizebaris10 }}; font-family: Arial, sans-serif;">{{ Auth::user()->baris10 }}</div>
+            @endif
             </td>
         </tr>
     </table>
-
     <hr>
-    @elseguest
+    @else
+    {{-- Guest atau tidak ada kop surat --}}
     <div style="height:129px"></div>
-    @endauth
+    @endif
 
     <div style="text-align: center; font-size: 9pt; font-weight: bold;">
         <h2>BERITA ACARA<br>INSPEKSI KESEHATAN LINGKUNGAN {{ strtoupper($form) }}</h2>

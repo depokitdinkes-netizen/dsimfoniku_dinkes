@@ -20,8 +20,8 @@ class UserController extends Controller
         if ($user->role === 'ADMIN') {
             $users = collect([$user]); // Hanya user yang login
         } else {
-            // Superadmin bisa lihat semua user
-            $query = User::with('userKelurahan');
+            // Superadmin bisa lihat semua user kecuali guest user (id = 0)
+            $query = User::with('userKelurahan')->where('id', '!=', 3);
             
             // Filter berdasarkan kelurahan jika ada parameter
             if ($request->has('kelurahan') && $request->kelurahan !== '') {
@@ -79,6 +79,27 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6',
             'role' => 'required|in:ADMIN,SUPERADMIN',
+            // Kop surat validation - baris1-4 required, baris5-10 optional
+            'baris1' => 'required|string|max:255',
+            'baris2' => 'required|string|max:255',
+            'baris3' => 'required|string|max:255',
+            'baris4' => 'required|string|max:255',
+            'baris5' => 'nullable|string|max:255',
+            'baris6' => 'nullable|string|max:255',
+            'baris7' => 'nullable|string|max:255',
+            'baris8' => 'nullable|string|max:255',
+            'baris9' => 'nullable|string|max:255',
+            'baris10' => 'nullable|string|max:255',
+            'sizebaris1' => 'required|string|max:10',
+            'sizebaris2' => 'required|string|max:10',
+            'sizebaris3' => 'required|string|max:10',
+            'sizebaris4' => 'required|string|max:10',
+            'sizebaris5' => 'required|string|max:10',
+            'sizebaris6' => 'nullable|string|max:10',
+            'sizebaris7' => 'nullable|string|max:10',
+            'sizebaris8' => 'nullable|string|max:10',
+            'sizebaris9' => 'nullable|string|max:10',
+            'sizebaris10' => 'nullable|string|max:10',
         ];
         
         // Jika role adalah ADMIN, kelurahan dan kecamatan wajib diisi
@@ -165,6 +186,27 @@ class UserController extends Controller
             'fullname' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $manajemen_user->id,
             'password' => 'nullable|string|min:6',
+            // Kop surat validation - baris1-4 required, baris5-10 optional
+            'baris1' => 'required|string|max:255',
+            'baris2' => 'required|string|max:255',
+            'baris3' => 'required|string|max:255',
+            'baris4' => 'required|string|max:255',
+            'baris5' => 'nullable|string|max:255',
+            'baris6' => 'nullable|string|max:255',
+            'baris7' => 'nullable|string|max:255',
+            'baris8' => 'nullable|string|max:255',
+            'baris9' => 'nullable|string|max:255',
+            'baris10' => 'nullable|string|max:255',
+            'sizebaris1' => 'required|string|max:10',
+            'sizebaris2' => 'required|string|max:10',
+            'sizebaris3' => 'required|string|max:10',
+            'sizebaris4' => 'required|string|max:10',
+            'sizebaris5' => 'required|string|max:10',
+            'sizebaris6' => 'nullable|string|max:10',
+            'sizebaris7' => 'nullable|string|max:10',
+            'sizebaris8' => 'nullable|string|max:10',
+            'sizebaris9' => 'nullable|string|max:10',
+            'sizebaris10' => 'nullable|string|max:10',
         ];
         
         // Jika superadmin yang edit dan role berubah jadi ADMIN, kelurahan dan kecamatan wajib diisi
@@ -174,8 +216,8 @@ class UserController extends Controller
             $rules['kecamatan'] = 'required|string';
         }
         
-        // Jika user yang sedang diedit adalah ADMIN (edit profile sendiri), kelurahan dan kecamatan wajib diisi
-        if ($manajemen_user->role === 'ADMIN') {
+        // Jika SUPERADMIN edit user ADMIN lain (bukan diri sendiri), kelurahan dan kecamatan wajib diisi
+        if ($currentUser->role === 'SUPERADMIN' && $manajemen_user->role === 'ADMIN' && $currentUser->id !== $manajemen_user->id) {
             $rules['kelurahan'] = 'required|array|min:1';
             $rules['kelurahan.*'] = 'required|string';
             $rules['kecamatan'] = 'required|string';
@@ -200,11 +242,20 @@ class UserController extends Controller
             if ($currentUser->role === 'ADMIN' && isset($data['role'])) {
                 unset($data['role']);
             }
-
-            if (!$data['password']) {
+            
+            // Admin tidak bisa mengubah data pribadi (nama, email, password), kecamatan dan kelurahan mereka sendiri
+            if ($currentUser->role === 'ADMIN' && $currentUser->id === $manajemen_user->id) {
+                unset($data['fullname']);
+                unset($data['email']);
                 unset($data['password']);
-            } else {
+                unset($data['kelurahan']);
+                unset($data['kecamatan']);
+            }
+
+            if (!empty($data['password'])) {
                 $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
             }
 
             // Handle kelurahan for ADMIN role
@@ -216,8 +267,8 @@ class UserController extends Controller
             // Update user data
             $manajemen_user->update($data);
 
-            // Update kelurahan jika user adalah ADMIN atau berubah menjadi ADMIN
-            if (($manajemen_user->role === 'ADMIN' || $request->role === 'ADMIN') && !empty($kelurahanList)) {
+            // Update kelurahan HANYA jika SUPERADMIN yang edit user ADMIN lain
+            if ($currentUser->role === 'SUPERADMIN' && ($manajemen_user->role === 'ADMIN' || $request->role === 'ADMIN') && !empty($kelurahanList)) {
                 // Hapus kelurahan lama
                 UserKelurahan::where('user_id', $manajemen_user->id)->delete();
                 

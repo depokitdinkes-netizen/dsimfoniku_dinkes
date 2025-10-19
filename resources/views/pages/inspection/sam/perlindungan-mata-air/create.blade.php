@@ -246,45 +246,12 @@
 </form>
 
 <x-modal.get-lat-long />
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 
 <script>
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-            // Parse issued date
-            const issuedDate = new Date(issuedDateInput.value);
-            
-            // Add 3 years
-            const expireDate = new Date(issuedDate);
-            expireDate.setFullYear(expireDate.getFullYear() + 3);
-            
-            // Format to YYYY-MM-DD
-            const formattedDate = expireDate.toISOString().split('T')[0];
-            
-            // Set expire date
-            expireDateInput.value = formattedDate;
-        } else if (issuedDateInput && expireDateInput && !issuedDateInput.value) {
-            // Clear expire date if issued date is cleared
-            expireDateInput.value = '';
-        }
-    }
-
-    // Initialize on page load if values exist
-    document.addEventListener('DOMContentLoaded', function() {
-        calculateSlhsExpireDate();
-    });
-
-    $('input[name="ada-bangunan-penangkap"]').on('change', function() {
-        const value = $('input[name="ada-bangunan-penangkap"]:checked').val();
-        if (value == '1') {
-            $('.extra-question').removeClass('hidden');
-        } else {
-            $('.extra-question').addClass('hidden');
-        }
-    })
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<script src="{{ asset('js/inspection/sam/perlindungan-mata-air/create.js') }}"></script>
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

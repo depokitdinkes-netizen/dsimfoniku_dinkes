@@ -13,6 +13,7 @@
         </div>
     </form>
     <form method="dialog" class="modal-backdrop">
+        @csrf
         <button>close</button>
     </form>
 </dialog>

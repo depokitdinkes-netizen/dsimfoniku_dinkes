@@ -185,13 +185,10 @@
 <x-modal.get-lat-long />
 
 <script>
-
-}
-
-// Auto-calculate on page load if issued date already filled
-document.addEventListener('DOMContentLoaded', function() {});
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
 
+<script src="{{ asset('js/inspection/pasar-internal/create.js') }}"></script>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

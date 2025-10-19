@@ -147,14 +147,7 @@
 
 <x-modal.get-lat-long />
 
-<script>
-
-}
-
-// Auto-calculate on page load if issued date already filled
-document.addEventListener('DOMContentLoaded', function() {});
-</script>
-
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
+<script src="{{ asset('js/inspection/tempat-ibadah/create.js') }}"></script>
 @endsection

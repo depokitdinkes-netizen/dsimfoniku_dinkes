@@ -48,18 +48,9 @@
 
     </form>
     <form method="dialog" class="modal-backdrop">
+        @csrf
         <button>close</button>
     </form>
 </dialog>
 
-<script>
-    $(document).ready(function() {
-        $('#form-type').change(e => {
-            if (e.target.value != "") {
-                $('#export-form').attr('action', e.target.value);
-            } else {
-                $('#export-form').attr('action', '');
-            }
-        })
-    })
-</script>
+<script src="{{ asset('js/modal/export-history.js') }}"></script>

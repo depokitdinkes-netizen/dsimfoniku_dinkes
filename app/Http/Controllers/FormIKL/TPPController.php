@@ -5,6 +5,7 @@ namespace App\Http\Controllers\FormIKL;
 use App\Http\Controllers\Controller;
 use App\Models\FormIKL\TPP;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class TPPController extends Controller
@@ -720,6 +721,9 @@ class TPPController extends Controller
 
         $formData['skor'] = (int) (100 - ($total / 370) * 100);
         $formData['catatan-lain'] = $request->input('catatan-lain');
+        
+        // Set user_id: 3 untuk guest, Auth::id() untuk user yang login
+        $formData['user_id'] = Auth::check() ? Auth::id() : 3;
 
         $insert = TPP::create($formData);
 
@@ -782,6 +786,11 @@ class TPPController extends Controller
 
     public function destroy(TPP $tpp)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $destroy = $tpp->destroy($tpp['id']);
 
         if (!$destroy) {

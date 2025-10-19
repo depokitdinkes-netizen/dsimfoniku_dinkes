@@ -16,6 +16,7 @@
     @auth
     @if (Auth::user()->role == "SUPERADMIN")
     <form method="GET" action="{{ route('manajemen-user.index') }}" class="mb-6">
+        @csrf
         <div class="flex justify-end gap-3 flex-wrap">
             <div class="join">
                 <button type="submit" class="btn btn-primary btn-square join-item">
@@ -141,12 +142,13 @@
                     <td>{{ $user['fullname'] }}</td>
                     <td>{{ $user['email'] }}</td>
                     <td>{{ $user['role'] }}</td>
-                    <td>
+                    <td class="max-w-xs">
                         @if($user['role'] === 'ADMIN' && $user->userKelurahan->count() > 0)
-                            @foreach($user->userKelurahan as $index => $userKel)
-                                <span class="badge badge-primary badge-sm mr-1 mb-1">{{ $userKel->kelurahan }}</span>
-                                @if(($index + 1) % 3 === 0)<br>@endif
-                            @endforeach
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach($user->userKelurahan as $userKel)
+                                    <span class="border-2 border-primary text-primary font-medium px-3 py-1.5 rounded-full text-xs inline-block" style="word-break: break-word; max-width: 140px; line-height: 1.3;">{{ $userKel->kelurahan }}</span>
+                                @endforeach
+                            </div>
                         @else
                             {{ $user['kelurahan'] ?? '-' }}
                         @endif
@@ -215,48 +217,17 @@
         </div>
     </form>
     <form method="dialog" class="modal-backdrop">
+        @csrf
         <button>close</button>
     </form>
 </dialog>
 @endif
 @endauth
 
-<script>
-// Auto-submit form saat filter berubah
-document.getElementById('filter-kelurahan').addEventListener('change', function() {
-    this.form.submit();
-});
+<div data-window-var="userIndexData" data-delete-base-url='{{ route("manajemen-user.destroy", ":id") }}' data-csrf-token="{{ csrf_token() }}" style="display:none;"></div>
 
-// Search dengan delay untuk mengurangi request
-let searchTimeout;
-document.getElementById('search-user').addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    const form = this.form;
-    
-    searchTimeout = setTimeout(function() {
-        form.submit();
-    }, 500); // Submit setelah 500ms tidak ada perubahan
-});
-
-// Function untuk membuka modal delete
-function openDeleteModal(userId, userName, userEmail, userRole) {
-    const modal = document.getElementById('delete_user_modal');
-    const form = document.getElementById('delete_user_form');
-    const userNameSpan = document.getElementById('user_name_to_delete');
-    const userEmailSpan = document.getElementById('user_email_to_delete');
-    const userRoleSpan = document.getElementById('user_role_to_delete');
-    
-    // Set action URL untuk form menggunakan route helper Laravel
-    form.action = "{{ url('manajemen-user') }}/" + userId;
-    
-    // Set informasi user yang akan dihapus
-    userNameSpan.textContent = userName;
-    userEmailSpan.textContent = userEmail;
-    userRoleSpan.textContent = userRole;
-    
-    // Tampilkan modal
-    modal.showModal();
-}
-</script>
+@section('script')
+<script src="{{ asset('js/user/index.js') }}"></script>
+@endsection
 
 @endsection

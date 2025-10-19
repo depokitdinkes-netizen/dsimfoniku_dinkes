@@ -239,78 +239,31 @@
 <x-modal.confirmation />
 <x-modal.get-lat-long />
 
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                let options = "";
-
-                kecamatan.forEach((el) => {
-                    options += `<option value="${el.name}" ${kecVal == el.name && 'selected'}>${el.name}</option>`;
-                });
-
-                $("#kec").html('<option value="">Pilih Kecamatan</option>');
-                $("#kec").html($("#kec").html() + options);
-
-                // Set the selected kecamatan
-                $("#kec").val(kecVal);
-
-                let kecId = kecamatan.find((el) => el.name == kecVal)?.id;
-
-                if (kecId) {
-                    fetch(
-                            `https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`
-                        )
-                        .then((response) => response.json())
-                        .then((villages) => {
-                            let options = "";
-                            villages.forEach((el) => {
-                                options += `<option value="${el.name}" ${kelVal == el.name && 'selected'}>${el.name}</option>`;
-                            });
-
-                            $("#kel").html('<option value="">Pilih Kelurahan</option>' + options);
-                            
-                            // Set the selected kelurahan
-                            $("#kel").val(kelVal);
-                        });
-                }
-
-                clearInterval(checkKec);
-            }
-        }, 500)
-    });
-
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-            // Parse issued date
-            const issuedDate = new Date(issuedDateInput.value);
-            
-            // Add 3 years
-            const expireDate = new Date(issuedDate);
-            expireDate.setFullYear(expireDate.getFullYear() + 3);
-            
-            // Format to YYYY-MM-DD
-            const formattedDate = expireDate.toISOString().split('T')[0];
-            
-            // Set expire date
-            expireDateInput.value = formattedDate;
-        } else if (expireDateInput) {
-            // Clear expire date if no issued date
-            expireDateInput.value = '';
-        }
-    }
-
-
-
-    // Auto-calculate on page load if issued date already filled
-    calculateSlhsExpireDate();
+    // Set authentication flag for JavaScript
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<div data-window-var="restoranEditData" 
+     data-kecamatan="{{ $form_data['kecamatan'] ?? '' }}" 
+     data-kelurahan="{{ $form_data['kelurahan'] ?? '' }}"
+     data-user-role="{{ Auth::user()->role }}"
+     data-user-kecamatan="{{ Auth::user()->userKelurahan->first()->kecamatan ?? '' }}"
+     data-user-kelurahan="{{ json_encode(Auth::user()->userKelurahan->pluck('kelurahan')->toArray()) }}"
+     style="display:none;"></div>
+
+<script>
+    // Pass data to JavaScript
+    window.restoranEditData = {
+        kecamatan: "{{ $form_data['kecamatan'] ?? '' }}",
+        kelurahan: "{{ $form_data['kelurahan'] ?? '' }}",
+        userRole: "{{ Auth::user()->role }}",
+        userKecamatan: "{{ Auth::user()->userKelurahan->first()->kecamatan ?? '' }}",
+        userKelurahan: {!! json_encode(Auth::user()->userKelurahan->pluck('kelurahan')->toArray()) !!}
+    };
+</script>
+
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
+<script src="{{ asset('js/inspection/restoran/edit.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

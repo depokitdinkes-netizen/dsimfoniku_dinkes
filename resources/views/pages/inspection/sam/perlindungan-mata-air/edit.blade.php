@@ -257,79 +257,14 @@
 </form>
 
 <x-modal.get-lat-long />
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
+
+<div data-window-var="formData" data-kecamatan="{{ $form_data['kecamatan'] }}" data-kelurahan="{{ $form_data['kelurahan'] }}" style="display:none;"></div>
+
 <script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                let options = "";
-
-                kecamatan.forEach((el) => {
-                    options += `<option value="${el.name}" ${kecVal == el.name && 'selected'}>${el.name}</option>`;
-                });
-
-                $("#kec").html('<option>Pilih Kelurahan</option>');
-                $("#kec").html($("#kec").html() + options);
-
-                let kecId = kecamatan.find((el) => el.name == kecVal).id;
-
-                fetch(
-                        `https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`
-                    )
-                    .then((response) => response.json())
-                    .then((villages) => {
-                        let options = "";
-                        villages.forEach((el) => {
-                            options += `<option value="${el.name}" ${kelVal == el.name && 'selected'}>${el.name}</option>`;
-                        });
-
-                        $("#kel").html($("#kel").html() + options);
-                    });
-
-                clearInterval(checkKec);
-            }
-        }, 500)
-    });
-
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-            // Parse issued date
-            const issuedDate = new Date(issuedDateInput.value);
-            
-            // Add 3 years
-            const expireDate = new Date(issuedDate);
-            expireDate.setFullYear(expireDate.getFullYear() + 3);
-            
-            // Format to YYYY-MM-DD
-            const formattedDate = expireDate.toISOString().split('T')[0];
-            
-            // Set expire date
-            expireDateInput.value = formattedDate;
-        } else if (issuedDateInput && expireDateInput && !issuedDateInput.value) {
-            // Clear expire date if issued date is cleared
-            expireDateInput.value = '';
-        }
-    }
-
-    // Initialize on page load if values exist
-    document.addEventListener('DOMContentLoaded', function() {
-        calculateSlhsExpireDate();
-    });
-
-    $('input[name="ada-bangunan-penangkap"]').on('change', function() {
-        const value = $('input[name="ada-bangunan-penangkap"]:checked').val();
-        if (value == '1') {
-            $('.extra-question').removeClass('hidden');
-        } else {
-            $('.extra-question').addClass('hidden');
-        }
-    })
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
+<script src="{{ asset('js/inspection/sam/perlindungan-mata-air/edit.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

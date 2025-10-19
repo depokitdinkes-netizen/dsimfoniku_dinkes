@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class PenyimpananAirHujanController extends Controller {
     protected function informasiUmum() {
@@ -179,43 +181,117 @@ class PenyimpananAirHujanController extends Controller {
     }
 
     public function store(Request $request) {
-        // Check if user is authenticated
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+        try {
+            // Check if user is guest
+            $isGuest = !Auth::check();
+            
+            if ($isGuest) {
+                Log::info('Guest user attempting to create PenyimpananAirHujan inspection', [
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'timestamp' => now()
+                ]);
+            }
+
+            // Comprehensive input validation
+            $validationRules = [
+                'subjek' => 'required|string|max:255',
+                'pengelola' => 'required|string|max:255',
+                'u002' => 'nullable|string|max:100',
+                'u003' => 'required|string|max:255',
+                'alamat' => 'required|string|max:500',
+                'kecamatan' => 'required|string|max:255',
+                'kelurahan' => 'required|string|max:255',
+                'nama-pemeriksa' => 'required|string|max:255',
+                'instansi-pemeriksa' => 'required|string|max:255',
+                'dokumen_slhs' => 'nullable|url',
+                'slhs_issued_date' => 'nullable|date',
+                'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
+            ];
+
+            $validationMessages = [
+                'subjek.required' => 'Nama Sarana wajib diisi.',
+                'pengelola.required' => 'Nama Pemilik Sarana wajib diisi.',
+                'u003.required' => 'Desa wajib diisi.',
+                'alamat.required' => 'Alamat wajib diisi.',
+                'kecamatan.required' => 'Kecamatan wajib diisi.',
+                'kelurahan.required' => 'Kelurahan wajib diisi.',
+                'nama-pemeriksa.required' => 'Nama Pemeriksa wajib diisi.',
+                'instansi-pemeriksa.required' => 'Instansi Pemeriksa wajib diisi.',
+                'dokumen_slhs.url' => 'Dokumen SLHS harus berupa URL yang valid.',
+                'slhs_issued_date.date' => 'Tanggal Terbit SLHS harus berupa tanggal yang valid.',
+                'slhs_expire_date.date' => 'Tanggal Kadaluarsa SLHS harus berupa tanggal yang valid.',
+                'slhs_expire_date.after_or_equal' => 'Tanggal Kadaluarsa SLHS harus sama atau setelah Tanggal Terbit SLHS.',
+            ];
+
+            $request->validate($validationRules, $validationMessages);
+
+            $data = $request->all();
+            
+            // Handle custom instansi pemeriksa input
+            if (!empty($request->input('instansi-lainnya'))) {
+                $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
+                Log::info('Custom instansi pemeriksa used', [
+                    'custom_instansi' => $request->input('instansi-lainnya'),
+                    'user_type' => $isGuest ? 'guest' : 'authenticated'
+                ]);
+            }
+            
+            // Set user_id: 3 untuk guest, Auth::id() untuk user yang login
+            $data['user_id'] = $isGuest ? 3 : Auth::id();
+            
+            foreach ($this->formPenilaianName() as $column) {
+                $data[$column] = $request->input($column, '0');
+            }
+
+            $formPenilaianName = $this->formPenilaianName();
+            $data['skor'] = (int) (array_reduce($formPenilaianName, fn($carry, $column) => $carry + $data[$column]));
+
+            Log::info('Creating PenyimpananAirHujan inspection', [
+                'user_id' => $data['user_id'],
+                'user_type' => $isGuest ? 'guest' : 'authenticated',
+                'subjek' => $data['subjek'],
+                'skor' => $data['skor'],
+                'ip' => $request->ip()
+            ]);
+
+            $insert = PenyimpananAirHujan::create($data);
+
+            if (!$insert) {
+                Log::error('Failed to create PenyimpananAirHujan inspection', [
+                    'user_id' => $data['user_id'],
+                    'user_type' => $isGuest ? 'guest' : 'authenticated',
+                    'data' => $data
+                ]);
+                return redirect(route('inspection'))->with('error', 'Penilaian / inspeksi SAM Penyimpanan Air Hujan gagal dibuat, silahkan coba lagi');
+            }
+
+            Log::info('PenyimpananAirHujan inspection created successfully', [
+                'inspection_id' => $insert->id,
+                'user_id' => $data['user_id'],
+                'user_type' => $isGuest ? 'guest' : 'authenticated',
+                'subjek' => $data['subjek']
+            ]);
+
+            return redirect(route('penyimpanan-air-hujan.show', ['penyimpanan_air_hujan' => $insert->id]))
+                ->with('success', 'Penilaian / inspeksi SAM Penyimpanan Air Hujan berhasil dibuat');
+
+        } catch (ValidationException $e) {
+            Log::warning('Validation failed for PenyimpananAirHujan inspection', [
+                'user_type' => !Auth::check() ? 'guest' : 'authenticated',
+                'errors' => $e->errors(),
+                'ip' => $request->ip()
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Unexpected error creating PenyimpananAirHujan inspection', [
+                'user_type' => !Auth::check() ? 'guest' : 'authenticated',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'ip' => $request->ip()
+            ]);
+            return redirect(route('inspection'))->with('error', 'Terjadi kesalahan sistem. Silahkan coba lagi atau hubungi administrator.');
         }
-        
-        // Validasi input
-        $request->validate([
-            'dokumen_slhs' => 'nullable|url',
-            'slhs_issued_date' => 'nullable|date',
-            'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
-        ]);
-
-        $data = $request->all();
-        
-        // Handle custom instansi pemeriksa input
-        if (!empty($request->input('instansi-lainnya'))) {
-            $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
-        }
-        
-        // Tambahkan user_id dari user yang sedang login
-        $data['user_id'] = Auth::id();
-        
-        foreach ($this->formPenilaianName() as $column) {
-            $data[$column] = $request->input($column, '0');
-        }
-
-        $formPenilaianName = $this->formPenilaianName();
-
-        $data['skor'] = (int) (array_reduce($formPenilaianName, fn($carry, $column) => $carry + $data[$column]));
-
-        $insert = PenyimpananAirHujan::create($data);
-
-        if (!$insert) {
-            return redirect(route('inspection'))->with('error', 'penilaian / inspeksi SAM Penyimpanan Air Hujan gagal dibuat, silahkan coba lagi');
-        }
-
-        return redirect(route('penyimpanan-air-hujan.show', ['penyimpanan_air_hujan' => $insert->id]))->with('success', 'penilaian / inspeksi SAM Penyimpanan Air Hujan berhasil dibuat');
     }
 
     public function show(PenyimpananAirHujan $penyimpananAirHujan) {
@@ -240,6 +316,11 @@ class PenyimpananAirHujanController extends Controller {
      * Show the form for editing the specified resource.
      */
     public function edit(PenyimpananAirHujan $penyimpananAirHujan) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.sam.penyimpanan-air-hujan.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -325,6 +406,11 @@ class PenyimpananAirHujanController extends Controller {
      * Remove the specified resource from storage.
      */
     public function destroy(String $id) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $penyimpananAirHujan = PenyimpananAirHujan::where('id', $id)->withTrashed()->first();
 
         if ($penyimpananAirHujan['deleted_at']) {

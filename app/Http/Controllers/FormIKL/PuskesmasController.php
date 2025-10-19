@@ -594,6 +594,22 @@ class PuskesmasController extends Controller
                 unset($data['instansi-lainnya']);
             }
 
+            // Check if user is guest or authenticated
+            if (Auth::check()) {
+                $data['user_id'] = Auth::id();
+                Log::info('Authenticated user creating puskesmas form', [
+                    'user_id' => Auth::id(),
+                    'user_email' => Auth::user()->email ?? 'N/A'
+                ]);
+            } else {
+                $data['user_id'] = 3; // Guest user ID
+                Log::info('Guest user creating puskesmas form', [
+                    'user_id' => 3,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent()
+                ]);
+            }
+
             $data['skor'] = (int) (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column), 0) / 117 * 100);
 
             $insert = Puskesmas::create($data);
@@ -662,6 +678,11 @@ class PuskesmasController extends Controller
      */
     public function edit(Puskesmas $puskesmas)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.puskesmas.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -814,6 +835,11 @@ class PuskesmasController extends Controller
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $puskesmas = Puskesmas::where('id', $id)->withTrashed()->first();
 
         if ($puskesmas['deleted_at']) {

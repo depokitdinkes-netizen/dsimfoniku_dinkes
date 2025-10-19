@@ -34,22 +34,7 @@
                     </select>
                     <input type="text" id="u001" name="u001" placeholder="Ketikan Kategori" class="@if($form_data['u001']=='Pasar' || $form_data['u001']=='Sekolah' || $form_data['u001']=='Tempat Pengolahan Pangan') hidden @endif" value="{{ $form_data['u001'] }}" required />
 
-                    <script>
-                        $(document).ready(function() {
-                            $('#u001-select').change(function() {
-                                $('#u001').val(this.value);
 
-                                if (this.value == 'Other') {
-                                    $('#u001').removeClass('hidden');
-                                    $('#u001').prop('required', true);
-                                    $('#u001').val('');
-                                } else {
-                                    $('#u001').addClass('hidden');
-                                    $('#u001').removeAttr('required');
-                                }
-                            })
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -118,20 +103,7 @@
 
                     <input type="text" id="u010a" name="u010a" placeholder="Jelaskan frekuensi banjir, lama, dan tingkat keparahannya" class="@if($form_data['u010']!=1) hidden @endif" value="{{ $form_data['u010a'] }}" />
 
-                    <script>
-                        $(document).ready(function() {
-                            $('#u010').change(function() {
-                                if (this.value == "1") {
-                                    $('#u010a').removeClass('hidden');
-                                    $('#u010a').prop('required', true);
-                                } else {
-                                    $('#u010a').addClass('hidden');
-                                    $('#u010a').removeAttr('required');
-                                }
-                                $('#u010a').val('');
-                            });
-                        })
-                    </script>
+
                 </div>
                 @break
 
@@ -151,20 +123,7 @@
                         <option value="POMPA_RUSAK" @if($form_data['u011a']=='POMPA_RUSAK' ) selected @endif>Pompa/Sarana Rusak</option>
                     </select>
 
-                    <script>
-                        $(document).ready(function() {
-                            $('#u011').change(function() {
-                                $('#u011a').val('');
-                                if (this.value == "0") {
-                                    $('#u011a').removeClass('hidden');
-                                    $('#u011a').prop('required', true);
-                                } else {
-                                    $('#u011a').addClass('hidden');
-                                    $('#u011a').removeAttr('required');
-                                }
-                            });
-                        })
-                    </script>
+
                 </div>
                 @break
 
@@ -279,17 +238,7 @@
                     </div>
                 </div>
 
-                <script>
-                    $(document).ready(function() {
-                        $('input[name="ins001"]').change(function() {
-                            if (this.value == 0) {
-                                $('.ket-pengolahan').addClass('hidden');
-                            } else {
-                                $('.ket-pengolahan').removeClass('hidden');
-                            }
-                        })
-                    })
-                </script>
+
             </div>
             <div class="bg-white flex-grow pb-4">
                 <div class="p-6 sm:p-8">
@@ -370,66 +319,13 @@
 </form>
 
 <x-modal.get-lat-long />
+
+<div data-window-var="sumurGaliEditData" data-kecamatan="{{ $form_data['kecamatan'] }}" data-kelurahan="{{ $form_data['kelurahan'] }}" style="display:none;"></div>
+
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+</script>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                let options = "";
-
-                kecamatan.forEach((el) => {
-                    options += `<option value="${el.name}" ${kecVal == el.name && 'selected'}>${el.name}</option>`;
-                });
-
-                $("#kec").html('<option>Pilih Kelurahan</option>');
-                $("#kec").html($("#kec").html() + options);
-
-                let kecId = kecamatan.find((el) => el.name == kecVal).id;
-
-                fetch(
-                        `https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`
-                    )
-                    .then((response) => response.json())
-                    .then((villages) => {
-                        let options = "";
-                        villages.forEach((el) => {
-                            options += `<option value="${el.name}" ${kelVal == el.name && 'selected'}>${el.name}</option>`;
-                        });
-
-                        $("#kel").html($("#kel").html() + options);
-                    });
-
-                clearInterval(checkKec);
-            }
-        }, 500)
-    });
-</script>
+<script src="{{ asset('js/inspection/sam/sumur-gali/edit.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
-@endsection
-
-@section('script')
-<script>
-function calculateSlhsExpireDate() {
-    const issuedDate = document.getElementById('slhs_issued_date').value;
-    if (issuedDate) {
-        const issued = new Date(issuedDate);
-        const expired = new Date(issued);
-        expired.setFullYear(expired.getFullYear() + 3);
-        
-        const expiredDateString = expired.toISOString().split('T')[0];
-        document.getElementById('slhs_expire_date').value = expiredDateString;
-    }
-}
-
-// Calculate expire date on page load if issued date exists
-document.addEventListener('DOMContentLoaded', function() {
-    const issuedDate = document.getElementById('slhs_issued_date').value;
-    if (issuedDate) {
-        calculateSlhsExpireDate();
-    }
-});
-</script>
 @endsection

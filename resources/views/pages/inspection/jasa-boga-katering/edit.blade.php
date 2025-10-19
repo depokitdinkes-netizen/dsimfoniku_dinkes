@@ -239,86 +239,14 @@
 <x-modal.get-lat-long />
 <x-modal.confirmation />
 
+<div data-window-var="jasaBogaKateringEditData" data-kecamatan="{{ $form_data['kecamatan'] }}" data-kelurahan="{{ $form_data['kelurahan'] }}" style="display:none;"></div>
+
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+</script>
+
 <script src="{{ asset('js/fallbackData.js') }}"></script>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        // Wait for kecamatan data to load
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                // Populate kecamatan dropdown
-                let kecOptions = '<option value="">Pilih Kecamatan</option>';
-                kecamatan.forEach((el) => {
-                    kecOptions += `<option value="${el.name}" ${kecVal == el.name ? 'selected' : ''}>${el.name}</option>`;
-                });
-                $("#kec").html(kecOptions);
-                $("#kec").prop('disabled', false);
-
-                // If there's a selected kecamatan, load its kelurahan
-                if (kecVal) {
-                    let selectedKec = kecamatan.find((el) => el.name == kecVal);
-                    if (selectedKec) {
-                        fetch(`https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${selectedKec.id}.json`)
-                            .then((response) => response.json())
-                            .then((villages) => {
-                                let kelOptions = '<option value="">Pilih Kelurahan</option>';
-                                villages.forEach((el) => {
-                                    kelOptions += `<option value="${el.name}" ${kelVal == el.name ? 'selected' : ''}>${el.name}</option>`;
-                                });
-                                $("#kel").html(kelOptions);
-                                $("#kel").prop('disabled', false);
-                            })
-                            .catch((error) => {
-                                console.error('Error loading kelurahan:', error);
-                                // Try fallback data
-                                if (window.FALLBACK_KELURAHAN && window.FALLBACK_KELURAHAN[selectedKec.id]) {
-                                    let fallbackVillages = window.FALLBACK_KELURAHAN[selectedKec.id];
-                                    let kelOptions = '<option value="">Pilih Kelurahan</option>';
-                                    fallbackVillages.forEach((el) => {
-                                        kelOptions += `<option value="${el.name}" ${kelVal == el.name ? 'selected' : ''}>${el.name}</option>`;
-                                    });
-                                    $("#kel").html(kelOptions);
-                                    $("#kel").prop('disabled', false);
-                                }
-                            });
-                    }
-                }
-
-                clearInterval(checkKec);
-            }
-        }, 500);
-    });
-
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-            // Parse issued date
-            const issuedDate = new Date(issuedDateInput.value);
-            
-            // Add 3 years
-            const expireDate = new Date(issuedDate);
-            expireDate.setFullYear(expireDate.getFullYear() + 3);
-            
-            // Format to YYYY-MM-DD
-            const formattedDate = expireDate.toISOString().split('T')[0];
-            
-            // Set expire date
-            expireDateInput.value = formattedDate;
-        } else if (expireDateInput) {
-            // Clear expire date if no issued date
-            expireDateInput.value = '';
-        }
-    }
-
-
-
-    // Auto-calculate on page load if issued date already filled
-    calculateSlhsExpireDate();
-</script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
+<script src="{{ asset('js/inspection/jasa-boga-katering/edit.js') }}"></script>
 @endsection

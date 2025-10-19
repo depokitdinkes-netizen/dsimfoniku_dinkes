@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
@@ -341,45 +342,132 @@ class GeraiJajananKelilingController extends Controller
 
     public function store(Request $request)
     {
-        // Cek autentikasi user
-        if (!Auth::check()) {
-            Log::warning('Unauthenticated user attempted to submit Gerai Jajanan Keliling form', [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
+        try {
+            // Check if user is authenticated or guest
+            $isGuest = !Auth::check();
+            
+            if ($isGuest) {
+                Log::info('Guest user attempting to store Gerai Jajanan Keliling data');
+            }
+
+            // Validasi input komprehensif
+            $validatedData = $request->validate([
+                'subjek' => 'required|string|max:255',
+                'pengelola' => 'required|string|max:255',
+                'alamat' => 'required|string|max:500',
+                'kecamatan' => 'required|string|max:255',
+                'kelurahan' => 'required|string|max:255',
+                'u011' => 'required|in:A1,A2',
+                'dokumen_slhs' => 'nullable|url',
+                'slhs_issued_date' => 'nullable|date',
+                'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
+                'status-operasi' => 'nullable|string',
+                'kontak' => 'nullable|numeric',
+                'koordinat' => 'required|string|max:255',
+                'nama-pemeriksa' => 'nullable|string|max:255',
+                'instansi-pemeriksa' => 'nullable|string|max:255',
+                'tanggal-penilaian' => 'nullable|date',
+                'catatan-lain' => 'nullable|string|max:1000',
+                'rencana-tindak-lanjut' => 'nullable|string|max:1000',
+                'tujuan-ikl' => 'nullable|string|max:255',
+            ], [
+                'subjek.required' => 'Nama gerai jajanan keliling wajib diisi.',
+                'subjek.max' => 'Nama gerai jajanan keliling maksimal 255 karakter.',
+                'pengelola.required' => 'Nama pengelola wajib diisi.',
+                'pengelola.max' => 'Nama pengelola maksimal 255 karakter.',
+                'alamat.required' => 'Alamat wajib diisi.',
+                'alamat.max' => 'Alamat maksimal 500 karakter.',
+                'kecamatan.required' => 'Kecamatan wajib diisi.',
+                'kelurahan.required' => 'Kelurahan wajib diisi.',
+                'u011.required' => 'Golongan gerai wajib dipilih.',
+                'u011.in' => 'Golongan gerai harus A1 atau A2.',
+                'koordinat.required' => 'Koordinat wajib diisi.',
+                'dokumen_slhs.url' => 'Link dokumen SLHS harus berupa URL yang valid.',
+                'slhs_issued_date.date' => 'Format tanggal terbit SLHS tidak valid.',
+                'slhs_expire_date.date' => 'Format tanggal berakhir SLHS tidak valid.',
+                'slhs_expire_date.after_or_equal' => 'Tanggal berakhir SLHS harus setelah tanggal terbit.',
             ]);
-            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
+
+            Log::info('Gerai Jajanan Keliling form submission started', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'subjek' => $request->input('subjek'),
+                'pengelola' => $request->input('pengelola'),
+                'golongan' => $request->input('u011'),
+                'is_guest' => $isGuest
+            ]);
+
+            $data = $request->all();
+            
+            // Set user_id: 3 untuk guest, Auth::id() untuk user yang login
+            $data['user_id'] = $isGuest ? 3 : Auth::id();
+            
+            // Handle instansi-lainnya logic
+            if (isset($data['instansi-pemeriksa']) && $data['instansi-pemeriksa'] === 'Lainnya' && isset($data['instansi-lainnya'])) {
+                $data['instansi-pemeriksa'] = $data['instansi-lainnya'];
+                unset($data['instansi-lainnya']);
+            }
+
+            // Validate golongan
+            if ($data['u011'] != 'A1' && $data['u011'] != 'A2') {
+                Log::warning('Invalid golongan submitted', [
+                    'user_id' => $isGuest ? 3 : Auth::id(),
+                    'is_guest' => $isGuest,
+                    'golongan' => $data['u011']
+                ]);
+                return redirect(route('gerai-jajanan-keliling.create'))->with('error', 'Tidak ada gerai pangan jajanan keliling dengan golongan tersebut.');
+            }
+
+            $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / ['A1' => 98, 'A2' => 95][$data['u011']]) * 100);
+
+            $insert = GeraiJajananKeliling::create($data);
+
+            if (!$insert) {
+                Log::error('Failed to create Gerai Jajanan Keliling record', [
+                    'user_id' => $isGuest ? 3 : Auth::id(),
+                    'is_guest' => $isGuest,
+                    'data' => $validatedData
+                ]);
+                return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Gerai Pangan Jajanan Keliling gagal dibuat, silahkan coba lagi.');
+            }
+
+            Log::info('Gerai Jajanan Keliling record created successfully', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'record_id' => $insert->id,
+                'subjek' => $insert->subjek,
+                'golongan' => $insert->u011
+            ]);
+
+            $message = $request->input('action') == 'duplicate' ? 'Duplikat penilaian/inspeksi Gerai Pangan Jajanan Keliling berhasil dibuat.' : 'Penilaian/inspeksi Gerai Pangan Jajanan Keliling berhasil dibuat.';
+            return redirect(route('gerai-jajanan-keliling.show', ['gerai_jajanan_keliling' => $insert->id]))->with('success', $message);
+
+        } catch (ValidationException $e) {
+            $isGuest = !Auth::check();
+            Log::warning('Gerai Jajanan Keliling form validation failed', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'errors' => $e->errors(),
+                'input' => $request->except(['_token'])
+            ]);
+            
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Terdapat kesalahan dalam pengisian form. Silahkan periksa kembali.');
+        } catch (\Exception $e) {
+            $isGuest = !Auth::check();
+            Log::error('Unexpected error during Gerai Jajanan Keliling form submission', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->except(['_token'])
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan sistem. Silahkan coba lagi atau hubungi administrator.');
         }
-        
-        // Validasi input
-        $request->validate([
-            'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
-            'slhs_issued_date' => 'nullable|date',
-            'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
-        ]);
-
-        $data = $request->all();
-
-        // Handle instansi-lainnya logic
-        if (isset($data['instansi-pemeriksa']) && $data['instansi-pemeriksa'] === 'Lainnya' && isset($data['instansi-lainnya'])) {
-            $data['instansi-pemeriksa'] = $data['instansi-lainnya'];
-            unset($data['instansi-lainnya']);
-        }
-
-        if ($data['u011'] != 'A1' && $data['u011'] != 'A2') {
-            return redirect(route('gerai-jajanan-keliling.create'))->with('error', 'tidak ada gerai pangan jajanan keliling dengan golongan tersebut');
-        }
-
-        $data['user_id'] = Auth::id();
-        $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / ['A1' => 98, 'A2' => 95][$data['u011']]) * 100);
-
-        $insert = GeraiJajananKeliling::create($data);
-
-        if (!$insert) {
-            return redirect(route('inspection'))->with('error', 'penilaian / inspeksi Gerai Pangan Jajanan Keliling gagal dibuat, silahkan coba lagi');
-        }
-
-        $message = $request->input('action') == 'duplicate' ? 'duplikat penilaian / inspeksi Gerai Pangan Jajanan Keliling berhasil dibuat' : 'penilaian / inspeksi Gerai Pangan Jajanan Keliling berhasil dibuat';
-        return redirect(route('gerai-jajanan-keliling.show', ['gerai_jajanan_keliling' => $insert->id]))->with('success', $message);
     }
 
     public function show(GeraiJajananKeliling $geraiJajananKeliling)
@@ -403,6 +491,15 @@ class GeraiJajananKelilingController extends Controller
 
     public function edit(GeraiJajananKeliling $geraiJajananKeliling)
     {
+        // Restrict guest account from editing
+        if (!Auth::check()) {
+            Log::warning('Guest user attempted to access edit form', [
+                'gerai_jajanan_keliling_id' => $geraiJajananKeliling->id,
+                'user_id' => 3
+            ]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengedit data inspeksi.');
+        }
+
         $formPenilaian = $this->formPenilaian();
 
         switch ($geraiJajananKeliling['u011']) {
@@ -544,6 +641,12 @@ class GeraiJajananKelilingController extends Controller
 
     public function destroy(String $id)
     {
+        // Restrict guest account from deleting
+        if (!Auth::check()) {
+            Log::warning('Guest user attempted to delete gerai jajanan keliling data', ['user_id' => 3]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk menghapus data inspeksi');
+        }
+
         $geraiJajananKeliling = GeraiJajananKeliling::where('id', $id)->withTrashed()->first();
 
         if ($geraiJajananKeliling['deleted_at']) {

@@ -1,0 +1,95 @@
+/* Custom styles for search results - get-lat-long modal */
+#search-results {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    top: calc(100% + 0.25rem) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1002 !important;
+    max-height: 240px;
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+#search-results:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.search-result-item {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.search-result-item:hover {
+    background-color: #f3f4f6;
+}
+
+.search-result-item.active {
+    background-color: #dbeafe !important;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+/* Loading indicator */
+.search-loading {
+    padding: 1rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* No results indicator */
+.search-no-results {
+    padding: 1rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Ensure modal and elements have proper z-index stacking */
+.modal-box {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Make sure search input area has enough space for dropdown */
+.search-input-container {
+    position: relative;
+    z-index: 1001;
+    margin-bottom: 1rem;
+}
+
+/* Spinning animation for loading */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Prevent dropdown from overlapping with map */
+#map {
+    margin-top: 1.5rem !important;
+    clear: both;
+}
+
+/* Make search input area more spacious */
+.input-group {
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    #search-results {
+        max-height: 200px;
+    }
+}

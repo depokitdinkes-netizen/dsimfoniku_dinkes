@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class RumahMakanController extends Controller
 {
@@ -321,6 +323,7 @@ class RumahMakanController extends Controller
                     'rencana' => $item['rencana-tindak-lanjut'],
                     'pengelola' => $item['pengelola'],
                     'pemeriksa' => $item['nama-pemeriksa'],
+                    'is_superadmin' => Auth::check() && Auth::user()->role === 'superadmin',
                 ])->download('BAIKL_RUMAH_MAKAN_' . str_pad($item['id'], 5, '0', STR_PAD_LEFT) . '.pdf');
             case 'excel':
                 return Excel::download(new class implements FromCollection, WithHeadings {
@@ -525,69 +528,158 @@ class RumahMakanController extends Controller
      */
     public function store(Request $request)
     {
-        
-        // Validasi input
-        $request->validate([
-            'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
-            'slhs_issued_date' => 'nullable|date',
-            'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
-        ]);
-
-        $data = $request->all();
-        
-        // Handle instansi lainnya
-        if ($request->input('instansi-pemeriksa') === 'Lainnya' && $request->filled('instansi-lainnya')) {
-            $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
-        }
-        
-        // Handle duplicate action
-        if ($request->input('action') == 'duplicate' && $request->input('original_id')) {
-            $original = RumahMakan::find($request->input('original_id'));
+        try {
+            // Check if user is authenticated or guest
+            $isGuest = !Auth::check();
             
-            if ($original) {
-                // Create fallback data with original values for required fields
-                $fallbackData = array_merge($data, [
-                    'kelurahan' => !empty($data['kelurahan']) ? $data['kelurahan'] : $original->kelurahan,
-                    'kecamatan' => !empty($data['kecamatan']) ? $data['kecamatan'] : $original->kecamatan,
-                    'subjek' => !empty($data['subjek']) ? $data['subjek'] : $original->subjek,
-                    'alamat' => !empty($data['alamat']) ? $data['alamat'] : $original->alamat,
-                    'pengelola' => !empty($data['pengelola']) ? $data['pengelola'] : $original->pengelola,
-                    'kontak' => !empty($data['kontak']) ? $data['kontak'] : $original->kontak,
-                    'koordinat' => !empty($data['koordinat']) ? $data['koordinat'] : $original->koordinat,
-                    'nama-pemeriksa' => !empty($data['nama-pemeriksa']) ? $data['nama-pemeriksa'] : $original->{'nama-pemeriksa'},
-                    'instansi-pemeriksa' => !empty($data['instansi-pemeriksa']) ? $data['instansi-pemeriksa'] : $original->{'instansi-pemeriksa'},
-                    'status-operasi' => isset($data['status-operasi']) ? $data['status-operasi'] : $original->{'status-operasi'},
-                    'tujuan-ikl' => !empty($data['tujuan-ikl']) ? $data['tujuan-ikl'] : $original->{'tujuan-ikl'},
-                    'u009' => !empty($data['u009']) ? $data['u009'] : $original->u009,
-                    'u004' => isset($data['u004']) ? $data['u004'] : $original->u004,
-                    'u005' => isset($data['u005']) ? $data['u005'] : $original->u005,
-                    'u006' => isset($data['u006']) && !empty($data['u006']) ? $data['u006'] : $original->u006,
-                    'dokumen_slhs' => !empty($data['dokumen_slhs']) ? $data['dokumen_slhs'] : $original->dokumen_slhs,
-                    'slhs_issued_date' => !empty($data['slhs_issued_date']) ? $data['slhs_issued_date'] : $original->slhs_issued_date,
-                    'slhs_expire_date' => !empty($data['slhs_expire_date']) ? $data['slhs_expire_date'] : $original->slhs_expire_date,
-                    'tanggal-penilaian' => !empty($data['tanggal-penilaian']) ? $data['tanggal-penilaian'] : $original->{'tanggal-penilaian'},
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-                
-                // Remove duplicate action fields
-                unset($fallbackData['action'], $fallbackData['original_id']);
-                $data = $fallbackData;
+            if ($isGuest) {
+                Log::info('Guest user attempting to store RumahMakan data');
             }
+
+            // Validasi input komprehensif
+            $validatedData = $request->validate([
+                'subjek' => 'required|string|max:255',
+                'pengelola' => 'required|string|max:255',
+                'alamat' => 'required|string|max:500',
+                'kecamatan' => 'required|string|max:255',
+                'kelurahan' => 'required|string|max:255',
+                'u004' => 'nullable|numeric|min:0',
+                'u005' => 'nullable|numeric|min:0',
+                'u006' => 'nullable|string|max:255',
+                'u009' => 'required|in:A1,A2',
+                'dokumen_slhs' => 'nullable|url',
+                'slhs_issued_date' => 'nullable|date',
+                'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
+                'status-operasi' => 'nullable|string',
+                'kontak' => 'nullable|numeric',
+                'koordinat' => 'required|string|max:255',
+                'nama-pemeriksa' => 'nullable|string|max:255',
+                'instansi-pemeriksa' => 'nullable|string|max:255',
+                'tanggal-penilaian' => 'nullable|date',
+                'catatan-lain' => 'nullable|string|max:1000',
+                'rencana-tindak-lanjut' => 'nullable|string|max:1000',
+                'tujuan-ikl' => 'nullable|string|max:255',
+            ], [
+                'subjek.required' => 'Nama rumah makan wajib diisi.',
+                'subjek.max' => 'Nama rumah makan maksimal 255 karakter.',
+                'pengelola.required' => 'Nama pengelola wajib diisi.',
+                'pengelola.max' => 'Nama pengelola maksimal 255 karakter.',
+                'alamat.required' => 'Alamat wajib diisi.',
+                'alamat.max' => 'Alamat maksimal 500 karakter.',
+                'kecamatan.required' => 'Kecamatan wajib diisi.',
+                'kelurahan.required' => 'Kelurahan wajib diisi.',
+                'u009.required' => 'Tipe rumah makan wajib dipilih.',
+                'u009.in' => 'Tipe rumah makan harus A1 atau A2.',
+                'koordinat.required' => 'Koordinat wajib diisi.',
+                'dokumen_slhs.url' => 'Link dokumen SLHS harus berupa URL yang valid.',
+                'slhs_issued_date.date' => 'Format tanggal terbit SLHS tidak valid.',
+                'slhs_expire_date.date' => 'Format tanggal berakhir SLHS tidak valid.',
+                'slhs_expire_date.after_or_equal' => 'Tanggal berakhir SLHS harus setelah tanggal terbit.',
+            ]);
+
+            Log::info('RumahMakan form submission started', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'subjek' => $request->input('subjek'),
+                'pengelola' => $request->input('pengelola'),
+                'is_guest' => $isGuest
+            ]);
+
+            $data = $request->all();
+            
+            // Set user_id: 3 untuk guest, Auth::id() untuk user yang login
+            $data['user_id'] = $isGuest ? 3 : Auth::id();
+            
+            // Handle instansi-lainnya logic
+            if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
+                $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
+            }
+            
+            // Handle duplicate action
+            if ($request->input('action') == 'duplicate' && $request->input('original_id')) {
+                $original = RumahMakan::find($request->input('original_id'));
+                
+                if ($original) {
+                    // Create fallback data with original values for required fields
+                    $fallbackData = array_merge($data, [
+                        'kelurahan' => !empty($data['kelurahan']) ? $data['kelurahan'] : $original->kelurahan,
+                        'kecamatan' => !empty($data['kecamatan']) ? $data['kecamatan'] : $original->kecamatan,
+                        'subjek' => !empty($data['subjek']) ? $data['subjek'] : $original->subjek,
+                        'alamat' => !empty($data['alamat']) ? $data['alamat'] : $original->alamat,
+                        'pengelola' => !empty($data['pengelola']) ? $data['pengelola'] : $original->pengelola,
+                        'kontak' => !empty($data['kontak']) ? $data['kontak'] : $original->kontak,
+                        'koordinat' => !empty($data['koordinat']) ? $data['koordinat'] : $original->koordinat,
+                        'nama-pemeriksa' => !empty($data['nama-pemeriksa']) ? $data['nama-pemeriksa'] : $original->{'nama-pemeriksa'},
+                        'instansi-pemeriksa' => !empty($data['instansi-pemeriksa']) ? $data['instansi-pemeriksa'] : $original->{'instansi-pemeriksa'},
+                        'status-operasi' => isset($data['status-operasi']) ? $data['status-operasi'] : $original->{'status-operasi'},
+                        'tujuan-ikl' => !empty($data['tujuan-ikl']) ? $data['tujuan-ikl'] : $original->{'tujuan-ikl'},
+                        'u009' => !empty($data['u009']) ? $data['u009'] : $original->u009,
+                        'u004' => isset($data['u004']) ? $data['u004'] : $original->u004,
+                        'u005' => isset($data['u005']) ? $data['u005'] : $original->u005,
+                        'u006' => isset($data['u006']) && !empty($data['u006']) ? $data['u006'] : $original->u006,
+                        'dokumen_slhs' => !empty($data['dokumen_slhs']) ? $data['dokumen_slhs'] : $original->dokumen_slhs,
+                        'slhs_issued_date' => !empty($data['slhs_issued_date']) ? $data['slhs_issued_date'] : $original->slhs_issued_date,
+                        'slhs_expire_date' => !empty($data['slhs_expire_date']) ? $data['slhs_expire_date'] : $original->slhs_expire_date,
+                        'tanggal-penilaian' => !empty($data['tanggal-penilaian']) ? $data['tanggal-penilaian'] : $original->{'tanggal-penilaian'},
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    
+                    // Remove duplicate action fields
+                    unset($fallbackData['action'], $fallbackData['original_id']);
+                    $data = $fallbackData;
+                }
+            }
+
+            $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / ['A1' => 225, 'A2' => 215][strtoupper($request->input('u009', 'A1'))]) * 100);
+
+            $insert = RumahMakan::create($data);
+
+            if (!$insert) {
+                Log::error('Failed to create RumahMakan record', [
+                    'user_id' => $isGuest ? 3 : Auth::id(),
+                    'is_guest' => $isGuest,
+                    'data' => $validatedData
+                ]);
+                return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Rumah Makan gagal dibuat, silahkan coba lagi.');
+            }
+
+            Log::info('RumahMakan record created successfully', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'record_id' => $insert->id,
+                'subjek' => $insert->subjek
+            ]);
+
+            $message = $request->input('action') == 'duplicate' ? 'Duplikat penilaian/inspeksi Rumah Makan berhasil dibuat.' : 'Penilaian/inspeksi Rumah Makan ' . $request->input('u009') . ' berhasil dibuat.';
+            return redirect(route('rumah-makan.show', ['rumah_makan' => $insert->id]))->with('success', $message);
+
+        } catch (ValidationException $e) {
+            $isGuest = !Auth::check();
+            Log::warning('RumahMakan form validation failed', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'errors' => $e->errors(),
+                'input' => $request->except(['_token'])
+            ]);
+            
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Terdapat kesalahan dalam pengisian form. Silahkan periksa kembali.');
+        } catch (\Exception $e) {
+            $isGuest = !Auth::check();
+            Log::error('Unexpected error during RumahMakan form submission', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->except(['_token'])
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan sistem. Silahkan coba lagi atau hubungi administrator.');
         }
-        
-        // Tambahkan user_id dari user yang sedang login
-        $data['user_id'] = Auth::id();
-        $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / ['A1' => 225, 'A2' => 215][strtoupper($request->input('u009', 'A1'))]) * 100);
-
-        $insert = RumahMakan::create($data);
-
-        if (!$insert) {
-            return redirect(route('inspection'))->with('error', 'penilaian / inspeksi Rumah Makan gagal dibuat, silahkan coba lagi');
-        }
-
-        $message = $request->input('action') == 'duplicate' ? 'duplikat penilaian / inspeksi Rumah Makan berhasil dibuat' : 'penilaian / inspeksi Rumah Makan ' . $request->input('u009') . ' berhasil dibuat';
-        return redirect(route('rumah-makan.show', ['rumah_makan' => $insert->id]))->with('success', $message);
     }
 
     /**
@@ -617,6 +709,11 @@ class RumahMakanController extends Controller
      */
     public function edit(RumahMakan $rumahMakan)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $formPenilaian = $this->formPenilaian();
 
         switch ($rumahMakan->u009) {
@@ -737,6 +834,11 @@ class RumahMakanController extends Controller
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $rumahMakan = RumahMakan::where('id', $id)->withTrashed()->first();
 
         if ($rumahMakan['deleted_at']) {

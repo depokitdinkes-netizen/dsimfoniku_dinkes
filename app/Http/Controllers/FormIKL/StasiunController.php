@@ -235,7 +235,7 @@ class StasiunController extends Controller
     {
         try {
             Log::info('StasiunController store called', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'request_data' => $request->except(['_token'])
             ]);
 
@@ -252,8 +252,8 @@ class StasiunController extends Controller
             Log::info('Validation passed for store');
 
             $data = $request->all();
-            // Add auth user ID
-            $data['user_id'] = Auth::id();
+            // Set user_id: 3 for guest, actual user_id for logged users
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
 
             // Handle instansi-lainnya logic
             if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
@@ -287,7 +287,7 @@ class StasiunController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation failed in store', [
                 'errors' => $e->errors(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::check() ? Auth::id() : 3
             ]);
             return redirect()->back()->withErrors($e->errors())->withInput()->with('error', 'Data yang dimasukkan tidak valid. Silahkan periksa kembali.');
         } catch (\Exception $e) {
@@ -296,7 +296,7 @@ class StasiunController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::check() ? Auth::id() : 3
             ]);
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan sistem. Silahkan coba lagi atau hubungi administrator.');
         }
@@ -323,6 +323,11 @@ class StasiunController extends Controller
      */
     public function edit(Stasiun $stasiun)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.stasiun.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -450,6 +455,11 @@ class StasiunController extends Controller
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $stasiun = Stasiun::where('id', $id)->withTrashed()->first();
 
         if ($stasiun['deleted_at']) {

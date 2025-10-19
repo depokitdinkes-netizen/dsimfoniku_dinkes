@@ -265,81 +265,14 @@
 
 <x-modal.get-lat-long />
 <x-modal.remove-inspection destroyRoute="" />
+
+<div data-window-var="kantinEditData" data-delete-route-template="{{ route('gerai-kantin.destroy', ['gerai_kantin' => 0]) }}" data-kecamatan="{{ $form_data['kecamatan'] }}" data-kelurahan="{{ $form_data['kelurahan'] }}" style="display:none;"></div>
+
 <script>
-    let tempURL = `{{ route('gerai-kantin.destroy', ['gerai_kantin' => 0]) }}`;
-    $(document).ready(function() {
-        $('.btn-open-rm-modal').click(function() {
-            let deleteURL = tempURL.substr(0, tempURL.length - 1) + this.id
-
-            $('#rm-inspection-form').attr('action', deleteURL);
-            remove_inspection.showModal();
-        })
-
-    })
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
 
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                let options = "";
-
-                kecamatan.forEach((el) => {
-                    options += `<option value="${el.name}" ${kecVal == el.name && 'selected'}>${el.name}</option>`;
-                });
-
-                $("#kec").html('<option>Pilih Kelurahan</option>');
-                $("#kec").html($("#kec").html() + options);
-
-                let kecId = kecamatan.find((el) => el.name == kecVal).id;
-
-                fetch(
-                        `https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`
-                    )
-                    .then((response) => response.json())
-                    .then((villages) => {
-                        let options = "";
-                        villages.forEach((el) => {
-                            options += `<option value="${el.name}" ${kelVal == el.name && 'selected'}>${el.name}</option>`;
-                        });
-
-                        $("#kel").html($("#kel").html() + options);
-                    });
-
-                clearInterval(checkKec);
-            }
-        }, 500)
-    });
-
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-            // Parse issued date
-            const issuedDate = new Date(issuedDateInput.value);
-            
-            // Add 3 years
-            const expireDate = new Date(issuedDate);
-            expireDate.setFullYear(expireDate.getFullYear() + 3);
-            
-            // Format to YYYY-MM-DD
-            const formattedDate = expireDate.toISOString().split('T')[0];
-            
-            // Set expire date
-            expireDateInput.value = formattedDate;
-        } else if (expireDateInput) {
-            // Clear expire date if no issued date
-            expireDateInput.value = '';
-        }
-    }
-
-    // Auto-calculate on page load if issued date already filled
-    calculateSlhsExpireDate();
-</script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
+<script src="{{ asset('js/inspection/kantin/edit.js') }}"></script>
 @endsection

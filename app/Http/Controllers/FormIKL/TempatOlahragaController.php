@@ -320,15 +320,15 @@ class TempatOlahragaController extends Controller
             ]);
 
             Log::info('Gelanggang Olahraga form submission started', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'subjek' => $request->input('subjek'),
                 'pengelola' => $request->input('pengelola')
             ]);
 
             $data = $request->all();
 
-            // Tambahkan user_id dari user yang sedang login
-            $data['user_id'] = Auth::id();
+            // Set user_id: 3 for guest, actual user_id for logged users
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
 
             // Handle instansi-lainnya logic
             if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
@@ -341,14 +341,14 @@ class TempatOlahragaController extends Controller
 
             if (!$insert) {
                 Log::error('Failed to create Gelanggang Olahraga record', [
-                    'user_id' => Auth::id(),
+                    'user_id' => Auth::check() ? Auth::id() : 3,
                     'data' => $validatedData
                 ]);
                 return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Gelanggang Olahraga gagal dibuat, silahkan coba lagi.');
             }
 
             Log::info('Gelanggang Olahraga record created successfully', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'record_id' => $insert->id,
                 'subjek' => $insert->subjek
             ]);
@@ -358,7 +358,7 @@ class TempatOlahragaController extends Controller
 
         } catch (ValidationException $e) {
             Log::warning('Gelanggang Olahraga form validation failed', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'errors' => $e->errors(),
                 'input' => $request->except(['_token'])
             ]);
@@ -369,7 +369,7 @@ class TempatOlahragaController extends Controller
                 ->with('error', 'Terdapat kesalahan dalam pengisian form. Silahkan periksa kembali.');
         } catch (\Exception $e) {
             Log::error('Unexpected error during Gelanggang Olahraga form submission', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'input' => $request->except(['_token'])
@@ -400,6 +400,11 @@ class TempatOlahragaController extends Controller
 
     public function edit(TempatOlahraga $tempatOlahraga)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.tempat-olahraga.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -590,6 +595,11 @@ class TempatOlahragaController extends Controller
 
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $tempatOlahraga = TempatOlahraga::where('id', $id)->withTrashed()->first();
 
         if ($tempatOlahraga['deleted_at']) {

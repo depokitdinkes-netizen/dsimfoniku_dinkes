@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         
         // Run IKL inspection seeder
         $this->call([
+            GuestUserSeeder::class,
             SekolahSeeder::class,
             IklInspectionSeeder::class,
         ]);

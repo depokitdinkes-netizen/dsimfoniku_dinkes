@@ -34,22 +34,6 @@
                     </select>
                     <input type="text" id="u001" name="u001" placeholder="Ketikan Kategori" class="hidden" required />
 
-                    <script>
-                        $(document).ready(function() {
-                            $('#u001-select').change(function() {
-                                $('#u001').val(this.value);
-
-                                if (this.value == 'Other') {
-                                    $('#u001').removeClass('hidden');
-                                    $('#u001').prop('required', true);
-                                    $('#u001').val('');
-                                } else {
-                                    $('#u001').addClass('hidden');
-                                    $('#u001').removeAttr('required');
-                                }
-                            })
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -107,21 +91,6 @@
                     </select>
 
                     <input type="text" id="u009a" name="u009a" placeholder="Jelaskan frekuensi banjir, lama, dan tingkat keparahannya" class="hidden" />
-
-                    <script>
-                        $(document).ready(function() {
-                            $('#u009').change(function() {
-                                if (this.value == "1") {
-                                    $('#u009a').removeClass('hidden');
-                                    $('#u009a').prop('required', true);
-                                } else {
-                                    $('#u009a').addClass('hidden');
-                                    $('#u009a').removeAttr('required');
-                                }
-                                $('#u009a').val('');
-                            });
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -140,21 +109,6 @@
                         <option value="LISTRIK_PADAM">Listrik Padam</option>
                         <option value="POMPA_RUSAK">Pompa/Sarana Rusak</option>
                     </select>
-
-                    <script>
-                        $(document).ready(function() {
-                            $('#u010').change(function() {
-                                $('#u010a').val('');
-                                if (this.value == "0") {
-                                    $('#u010a').removeClass('hidden');
-                                    $('#u010a').prop('required', true);
-                                } else {
-                                    $('#u010a').addClass('hidden');
-                                    $('#u010a').removeAttr('required');
-                                }
-                            });
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -260,18 +214,6 @@
                         <input type="text" name="ins003" id="ins003" />
                     </div>
                 </div>
-
-                <script>
-                    $(document).ready(function() {
-                        $('input[name="ins001"]').change(function() {
-                            if (this.value == 0) {
-                                $('.ket-pengolahan').addClass('hidden');
-                            } else {
-                                $('.ket-pengolahan').removeClass('hidden');
-                            }
-                        })
-                    })
-                </script>
             </div>
             <div class="bg-white flex-grow pb-4 rounded-xl">
                 <div class="p-6 sm:p-8">
@@ -358,32 +300,12 @@
 </form>
 
 <x-modal.get-lat-long />
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && issuedDateInput.value && expireDateInput) {
-            const issuedDate = new Date(issuedDateInput.value);
-            // Add 3 years to the issued date
-            issuedDate.setFullYear(issuedDate.getFullYear() + 3);
-            
-            // Format the date as YYYY-MM-DD
-            const year = issuedDate.getFullYear();
-            const month = String(issuedDate.getMonth() + 1).padStart(2, '0');
-            const day = String(issuedDate.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
-            
-            expireDateInput.value = formattedDate;
-        } else if (expireDateInput) {
-            // Clear expire date if no issued date
-            expireDateInput.value = '';
-        }
-    }
 
-    // Auto-calculate on page load if issued date already filled
-    calculateSlhsExpireDate();
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<script src="{{ asset('js/inspection/sam/sumur-bor-pompa/create.js') }}"></script>
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

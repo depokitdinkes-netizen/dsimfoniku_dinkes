@@ -11,41 +11,96 @@ class EnsureAdminAccessOwnData
 {
     /**
      * Handle an incoming request.
-     * Admin hanya bisa mengakses data yang dibuat oleh dirinya sendiri.
-     * Superadmin bisa mengakses semua data.
+     * SUPERADMIN: Bisa edit/delete/export PDF semua form termasuk yang dibuat guest
+     * ADMIN: Bisa lihat semua history hasil inspeksi dan export raw excel, 
+     *        tapi hanya bisa edit/delete/export PDF untuk form miliknya sendiri
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Allow guest access for create and store methods
+        $routeName = $request->route()->getName();
+        $method = $request->method();
+        
         if (!Auth::check()) {
+            // Block access to pasar eksternal forms for guests (pasar internal still allowed)
+            if (str_starts_with($routeName, 'pasar.')) {
+                abort(403, 'Unauthorized - Login required for pasar eksternal forms');
+            }
+            
+            // Allow guest to access other create forms, store data, and show results (including pasar internal)
+            if (str_ends_with($routeName, '.create') || 
+                (str_ends_with($routeName, '.store') && $method === 'POST') ||
+                str_ends_with($routeName, '.show')) {
+                return $next($request);
+            }
+            
             abort(403, 'Unauthorized');
         }
 
         $user = Auth::user();
         
-        // Jika SUPERADMIN, boleh akses semua
+        // Jika SUPERADMIN, boleh akses semua (termasuk edit/delete form guest)
         if ($user->role === 'SUPERADMIN') {
             return $next($request);
         }
         
         // Jika ADMIN, perlu validasi lebih lanjut
         if ($user->role === 'ADMIN') {
-            // Untuk route yang memerlukan ID (show, edit, update, destroy)
             $routeParameters = $request->route()->parameters();
             
             if (!empty($routeParameters)) {
-                // Ambil ID dari parameter route
-                $resourceId = array_values($routeParameters)[0];
+                // Ambil parameter pertama dari route (bisa berupa ID atau model instance dari route model binding)
+                $resourceParam = array_values($routeParameters)[0];
                 
-                // Cek apakah data milik user yang login
-                $modelClass = $this->getModelClass($request->route()->getName());
+                // Cek apakah ini adalah operasi yang memerlukan ownership (edit, update, destroy, export PDF)
+                $restrictedActions = ['edit', 'update', 'destroy'];
+                $currentAction = explode('.', $routeName);
+                $action = end($currentAction);
                 
-                if ($modelClass && class_exists($modelClass)) {
-                    $model = $modelClass::find($resourceId);
+                // Cek juga untuk export PDF (parameter export=pdf)
+                $isExportPdf = $request->has('export') && $request->get('export') === 'pdf';
+                
+                if (in_array($action, $restrictedActions) || ($action === 'index' && $isExportPdf)) {
+                    $model = null;
                     
-                    if (!$model || $model->user_id !== $user->id) {
-                        abort(403, 'Access denied. You can only access your own data.');
+                    // Cek apakah parameter sudah berupa model instance (route model binding)
+                    if (is_object($resourceParam) && method_exists($resourceParam, 'getKey')) {
+                        // Sudah berupa model instance dari route model binding
+                        $model = $resourceParam;
+                    } else {
+                        // Masih berupa ID, perlu di-query
+                        $modelClass = $this->getModelClass($routeName);
+                        
+                        if ($modelClass && class_exists($modelClass)) {
+                            // Pastikan resourceParam adalah integer/string yang valid
+                            if (!$resourceParam || !is_numeric($resourceParam)) {
+                                abort(400, 'Invalid resource ID.');
+                            }
+                            
+                            $model = $modelClass::find($resourceParam);
+                        }
+                    }
+                    
+                    if (!$model) {
+                        abort(404, 'Data not found.');
+                    }
+                    
+                    // Pastikan model memiliki kolom user_id
+                    if (!isset($model->user_id)) {
+                        abort(500, 'Model does not have user_id field.');
+                    }
+                    
+                    // Admin hanya bisa edit/delete/export PDF data miliknya sendiri
+                    // Data guest (user_id = 3) atau data admin lain tidak bisa diedit/export PDF
+                    if ($model->user_id !== $user->id) {
+                        if ($isExportPdf) {
+                            abort(403, 'Access denied. You can only export PDF for your own data.');
+                        } else {
+                            abort(403, 'Access denied. You can only edit/delete your own data. This form is view-only for you.');
+                        }
                     }
                 }
+                // Untuk show dan index, admin bisa melihat semua data (view-only untuk yang bukan miliknya)
             }
         }
 

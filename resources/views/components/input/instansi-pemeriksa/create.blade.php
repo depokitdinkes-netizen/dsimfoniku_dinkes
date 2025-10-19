@@ -14,19 +14,6 @@
     <input type="text" id="instansi-lainnya" name="instansi-lainnya" class="input input-bordered w-full" placeholder="Masukkan nama instansi" />
 </div>
 
-<script>
-function toggleInstansiLainnya() {
-    const select = document.getElementById('instansi-pemeriksa');
-    const lainnyaGroup = document.getElementById('instansi-lainnya-group');
-    const lainnyaInput = document.getElementById('instansi-lainnya');
-    
-    if (select.value === 'Lainnya') {
-        lainnyaGroup.style.display = 'block';
-        lainnyaInput.required = true;
-    } else {
-        lainnyaGroup.style.display = 'none';
-        lainnyaInput.required = false;
-        lainnyaInput.value = '';
-    }
-}
-</script>
+@push('scripts')
+<script src="{{ asset('js/instansi-pemeriksa.js') }}"></script>
+@endpush

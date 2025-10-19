@@ -344,15 +344,15 @@ class TempatRekreasiController extends Controller
             ]);
 
             Log::info('Tempat Rekreasi form submission started', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'subjek' => $request->input('subjek'),
                 'pengelola' => $request->input('pengelola')
             ]);
 
             $data = $request->all();
             
-            // Tambahkan user_id dari user yang sedang login
-            $data['user_id'] = Auth::id();
+            // Assign user_id: 3 for guest, Auth::id() for logged users
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
             
             // Handle instansi-lainnya logic
             if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
@@ -371,14 +371,14 @@ class TempatRekreasiController extends Controller
 
             if (!$insert) {
                 Log::error('Failed to create Tempat Rekreasi record', [
-                    'user_id' => Auth::id(),
+                    'user_id' => Auth::check() ? Auth::id() : 3,
                     'data' => $validatedData
                 ]);
                 return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Tempat Rekreasi gagal dibuat, silahkan coba lagi.');
             }
 
             Log::info('Tempat Rekreasi record created successfully', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'record_id' => $insert->id,
                 'subjek' => $insert->subjek
             ]);
@@ -388,7 +388,7 @@ class TempatRekreasiController extends Controller
 
         } catch (ValidationException $e) {
             Log::warning('Tempat Rekreasi form validation failed', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'errors' => $e->errors(),
                 'input' => $request->except(['_token'])
             ]);
@@ -399,7 +399,7 @@ class TempatRekreasiController extends Controller
                 ->with('error', 'Terdapat kesalahan dalam pengisian form. Silahkan periksa kembali.');
         } catch (\Exception $e) {
             Log::error('Unexpected error during Tempat Rekreasi form submission', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'input' => $request->except(['_token'])
@@ -430,6 +430,11 @@ class TempatRekreasiController extends Controller
 
     public function edit(TempatRekreasi $tempatRekreasi)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.tempat-rekreasi.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -630,6 +635,11 @@ class TempatRekreasiController extends Controller
 
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $tempatRekreasi = TempatRekreasi::where('id', $id)->withTrashed()->first();
 
         if ($tempatRekreasi['deleted_at']) {

@@ -213,75 +213,11 @@
 
 <x-modal.get-lat-long />
 
-
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script>
-$(document).ready(function() {
-    // Handle kecamatan and kelurahan dropdown
-    let checkKec = setInterval(function() {
-        if (kecamatan.length > 0) {
-            let options = "";
-
-            kecamatan.forEach((el) => {
-                options += `<option value="${el.name}">${el.name}</option>`;
-            });
-
-            $("#kec").html('<option value="">Pilih Kecamatan</option>' + options);
-
-            // Handle kecamatan change
-            $("#kec").on('change', function() {
-                let selectedKecamatan = $(this).val();
-                $("#kel").html('<option value="">Pilih Kelurahan</option>');
-                
-                if (selectedKecamatan) {
-                    let kecId = kecamatan.find((el) => el.name == selectedKecamatan)?.id;
-                    
-                    if (kecId) {
-                        fetch(`https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`)
-                            .then((response) => response.json())
-                            .then((villages) => {
-                                let options = "";
-                                villages.forEach((el) => {
-                                    options += `<option value="${el.name}">${el.name}</option>`;
-                                });
-                                $("#kel").html('<option value="">Pilih Kelurahan</option>' + options);
-                            });
-                    }
-                }
-            });
-
-            clearInterval(checkKec);
-        }
-    }, 500);
-});
-
-function calculateSlhsExpireDate() {
-    const issuedDateInput = document.getElementById('slhs_issued_date');
-    const expireDateInput = document.getElementById('slhs_expire_date');
-    
-    if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-        // Parse issued date
-        const issuedDate = new Date(issuedDateInput.value);
-        
-        // Add 3 years
-        const expireDate = new Date(issuedDate);
-        expireDate.setFullYear(expireDate.getFullYear() + 3);
-        
-        // Format to YYYY-MM-DD
-        const formattedDate = expireDate.toISOString().split('T')[0];
-        
-        // Set expire date
-        expireDateInput.value = formattedDate;
-    } else if (expireDateInput) {
-        // Clear expire date if no issued date
-        expireDateInput.value = '';
-    }
-}
-
-// Auto-calculate on page load if issued date already filled
-document.addEventListener('DOMContentLoaded', function() {
-    calculateSlhsExpireDate();
-});
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<script src="{{ asset('js/inspection/gerai-pangan-jajanan/create.js') }}"></script>
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

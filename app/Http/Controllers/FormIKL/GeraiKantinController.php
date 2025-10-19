@@ -270,15 +270,6 @@ class GeraiKantinController extends Controller
      */
     public function store(Request $request)
     {
-        // Cek autentikasi user
-        if (!Auth::check()) {
-            Log::warning('Unauthenticated user attempted to submit Gerai Kantin form', [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]);
-            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
-        }
-        
         // Validasi input
         $request->validate([
             'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
@@ -293,8 +284,8 @@ class GeraiKantinController extends Controller
             $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
         }
         
-        // Tambahkan user_id dari user yang sedang login
-        $data['user_id'] = Auth::id();
+        // Set user_id: 3 for guest, actual user_id for logged users
+        $data['user_id'] = Auth::check() ? Auth::id() : 3;
         $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / 170) * 100);
 
         $insert = GeraiKantin::create($data);
@@ -319,6 +310,15 @@ class GeraiKantinController extends Controller
      */
     public function edit(GeraiKantin $geraiKantin)
     {
+        // Restrict guest account from editing
+        if (!Auth::check()) {
+            Log::warning('Guest user attempted to access edit form', [
+                'gerai_kantin_id' => $geraiKantin->id,
+                'user_id' => 3
+            ]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengedit data inspeksi.');
+        }
+
         $kantin = Kantin::where('id', $geraiKantin['id-kantin'])->first();
 
         return view('pages.inspection.gerai-kantin.edit', [
@@ -336,15 +336,6 @@ class GeraiKantinController extends Controller
      */
     public function update(Request $request, GeraiKantin $geraiKantin)
     {
-        // Cek autentikasi user
-        if (!Auth::check()) {
-            Log::warning('Unauthenticated user attempted to update Gerai Kantin form', [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]);
-            return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.');
-        }
-        
         // Validasi input
         $request->validate([
             'dokumen_slhs' => 'nullable|url', // Link dokumen SLHS
@@ -396,6 +387,12 @@ class GeraiKantinController extends Controller
      */
     public function destroy(String $id)
     {
+        // Restrict guest account from deleting
+        if (!Auth::check()) {
+            Log::warning('Guest user attempted to delete gerai kantin data', ['user_id' => 3]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk menghapus data inspeksi');
+        }
+
         $geraiKantin = GeraiKantin::where('id', $id)->withTrashed()->first();
 
         if ($geraiKantin['deleted_at']) {

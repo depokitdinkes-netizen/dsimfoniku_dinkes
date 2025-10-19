@@ -197,13 +197,12 @@
     </div>
 </form>
 
-<script>
-// Auto-calculate on page load if issued date already filled
-document.addEventListener('DOMContentLoaded', function() {});
-</script>
-
 <x-modal.get-lat-long />
 
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+</script>
+<script src="{{ asset('js/inspection/stasiun/create.js') }}"></script>
 <script src="{{ asset('js/fallbackData.js') }}"></script>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>

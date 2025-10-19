@@ -674,14 +674,8 @@ class PasarController extends Controller {
     public function store(Request $request)
     {
         try {
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                Log::warning('Unauthenticated user attempted to store Pasar data');
-                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
-            }
-
             Log::info('PasarController store called', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'request_data' => $request->except(['_token'])
             ]);
 
@@ -777,8 +771,8 @@ class PasarController extends Controller {
 
             Log::info('Validation passed for Pasar store');
             
-            // Add auth user ID
-            $data['user_id'] = Auth::id();
+            // Set user_id: 3 for guest, actual user_id for logged users
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
 
             // Only process form penilaian if not already processed in duplicate action
             if ($request->input('action') !== 'duplicate') {
@@ -800,7 +794,7 @@ class PasarController extends Controller {
 
             if (!$insert) {
                 Log::error('Failed to create Pasar record - insert returned false', [
-                    'user_id' => Auth::id(),
+                    'user_id' => Auth::check() ? Auth::id() : 3,
                     'data' => $data
                 ]);
                 return redirect(route('inspection'))->with('error', 'penilaian / inspeksi Pasar gagal dibuat, silahkan coba lagi');
@@ -813,14 +807,14 @@ class PasarController extends Controller {
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation failed in Pasar store', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'errors' => $e->errors(),
                 'request_data' => $request->except(['_token'])
             ]);
             return redirect()->back()->withErrors($e->errors())->withInput()->with('error', 'Data yang dimasukkan tidak valid. Silakan periksa kembali form Anda.');
         } catch (\Exception $e) {
             Log::error('Exception occurred in Pasar store', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'error_message' => $e->getMessage(),
                 'error_trace' => $e->getTraceAsString(),
                 'request_data' => $request->except(['_token'])
@@ -850,6 +844,12 @@ class PasarController extends Controller {
      */
     public function edit(Pasar $pasar)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to access Pasar edit form', ['pasar_id' => $pasar->id]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.pasar.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -865,15 +865,9 @@ class PasarController extends Controller {
     public function update(Request $request, Pasar $pasar)
     {
         try {
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                Log::warning('Unauthenticated user attempted to update Pasar data', ['pasar_id' => $pasar->id]);
-                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
-            }
-
             Log::info('PasarController update called', [
                 'pasar_id' => $pasar->id,
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'action' => $request->input('action'),
                 'request_data' => $request->except(['_token'])
             ]);
@@ -1041,6 +1035,12 @@ class PasarController extends Controller {
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            Log::warning('Unauthenticated user attempted to destroy Pasar data', ['pasar_id' => $id]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $pasar = Pasar::where('id', $id)->withTrashed()->first();
 
         if ($pasar['deleted_at']) {

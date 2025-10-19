@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAdminAccessOwnData;
 use App\Http\Middleware\EnsureRoleIsNotUser;
 use App\Http\Middleware\EnsureRoleIsSuperadmin;
+use App\Http\Middleware\SetSecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Apply security headers to all requests
+        $middleware->append(SetSecurityHeaders::class);
+
         $middleware->alias([
             'not-user' => EnsureRoleIsNotUser::class,
             'superadmin' => EnsureRoleIsSuperadmin::class,

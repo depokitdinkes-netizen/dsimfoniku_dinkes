@@ -18,6 +18,7 @@
 
 
 <script src="{{ asset('js/removeToast.js') }}"></script>
+@stack('scripts')
 </body>
 
 </html>

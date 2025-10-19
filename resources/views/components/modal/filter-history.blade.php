@@ -1,5 +1,5 @@
-<dialog id="filter_history" class="modal">
-    <form method="GET" action="{{ route('history') }}" class="modal-box max-w-[35rem]">
+<dialog id="filter_history" class="modal" data-current-form-types='@json(request("ft", []))' data-jenis-sekolah-param='@json(request("jenis_sekolah"))'>
+    <form method="GET" action="{{ route('history') }}" class="modal-box max-w-[35rem]" id="filter-history-modal">
 
         <h3 class="font-bold text-lg">Filter Histori Hasil Inspeksi</h3>
 
@@ -91,53 +91,11 @@
         </div>
     </form>
     <form method="dialog" class="modal-backdrop">
+        @csrf
         <button>close</button>
     </form>
 </dialog>
 
 <script src="{{ asset('js/getDistrictsAndVillagesCheckbox.js') }}"></script>
-
-<script>
-function toggleSekolahFilter() {
-    const sekolahCheckbox = document.getElementById('sekolah');
-    const jenisSekolahFilter = document.getElementById('jenis-sekolah-filter');
-    const jenisSekolahSelect = document.getElementById('jenis_sekolah');
-    
-    if (sekolahCheckbox && jenisSekolahFilter) {
-        if (sekolahCheckbox.checked) {
-            jenisSekolahFilter.style.display = 'block';
-        } else {
-            jenisSekolahFilter.style.display = 'none';
-            if (jenisSekolahSelect) {
-                jenisSekolahSelect.value = ''; // Reset pilihan jenis sekolah
-            }
-        }
-    }
-}
-
-// Cek status saat halaman dimuat
-document.addEventListener('DOMContentLoaded', function() {
-    // Cek apakah sekolah sudah dipilih dari request sebelumnya
-    const sekolahCheckbox = document.getElementById('sekolah');
-    const currentFormTypes = @json(request('ft', []));
-    
-    if (sekolahCheckbox && currentFormTypes.includes('sekolah')) {
-        sekolahCheckbox.checked = true;
-    }
-    
-    toggleSekolahFilter();
-    
-    // Jika ada parameter jenis_sekolah di URL, tampilkan filter
-    const jenisSekolahParam = @json(request('jenis_sekolah'));
-    if (jenisSekolahParam && sekolahCheckbox) {
-        sekolahCheckbox.checked = true;
-        toggleSekolahFilter();
-    }
-    
-    // Tambahkan event listener untuk semua checkbox form type
-    const formTypeCheckboxes = document.querySelectorAll('.form-type-checkbox');
-    formTypeCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', toggleSekolahFilter);
-    });
-});
-</script>
+<script src="{{ asset('js/modal/filter-history-init.js') }}"></script>
+<script src="{{ asset('js/modal/filter-history.js') }}"></script>

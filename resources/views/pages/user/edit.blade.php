@@ -23,6 +23,8 @@
             @csrf
             @method('PUT')
 
+            @auth
+            @if (Auth::user()->role == "SUPERADMIN")
             <div class="input-group">
                 <label for="fullname">Nama Lengkap</label>
                 <input type="text" id="fullname" name="fullname" class="input input-bordered w-full" placeholder="John Doe" value="{{ $user['fullname'] }}" required />
@@ -32,6 +34,23 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" class="input input-bordered w-full" placeholder="johnDoe@example.com" value="{{ $user['email'] }}" required />
             </div>
+            @else
+            <div class="input-group">
+                <label for="fullname">Nama Lengkap (Tidak dapat diubah)</label>
+                <input type="text" value="{{ $user['fullname'] }}" class="input input-bordered w-full bg-gray-100" readonly />
+                <input type="hidden" name="fullname" value="{{ $user['fullname'] }}" />
+                <p class="text-xs text-gray-500 mt-1">⚠️ Nama lengkap hanya dapat diubah oleh SUPERADMIN</p>
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email (Tidak dapat diubah)</label>
+                <input type="text" value="{{ $user['email'] }}" class="input input-bordered w-full bg-gray-100" readonly />
+                <input type="hidden" name="email" value="{{ $user['email'] }}" />
+                <p class="text-xs text-gray-500 mt-1">⚠️ Email hanya dapat diubah oleh SUPERADMIN</p>
+            </div>
+            @endif
+            @endauth
+            
             @auth
             @if (Auth::user()->role == "SUPERADMIN")
             <div class="input-group">
@@ -94,98 +113,121 @@
             
             @if($user['role'] == 'ADMIN')
             <div class="input-group" id="kecamatan-field-admin">
-                <label for="kec-admin">Kecamatan</label>
-                <select name="kecamatan" id="kec-admin" class="select select-bordered w-full">
-                    <option value="" disabled selected>Pilih Kecamatan</option>
-                    <!-- Options akan diisi oleh JavaScript -->
-                </select>
+                <label for="kec-admin">Kecamatan (Tidak dapat diubah)</label>
+                <input type="text" value="{{ $user->userKelurahan->first()->kecamatan ?? 'Belum diset' }}" class="input input-bordered w-full bg-gray-100" readonly />
+                <input type="hidden" name="kecamatan" value="{{ $user->userKelurahan->first()->kecamatan ?? '' }}" />
+                <p class="text-xs text-gray-500 mt-1">⚠️ Kecamatan hanya dapat diubah oleh SUPERADMIN</p>
             </div>
             
             <div class="input-group" id="kelurahan-field-admin">
-                <label for="kel-admin">Kelurahan</label>
-                <div id="kelurahan-container-admin">
+                <label for="kel-admin">Kelurahan (Tidak dapat diubah)</label>
+                <div class="space-y-2">
                     @if($user->userKelurahan->count() > 0)
-                        @foreach($user->userKelurahan as $index => $userKel)
-                        <div class="kelurahan-row flex gap-2 mb-2">
-                            <select name="kelurahan[]" class="select select-bordered w-full kelurahan-select-admin">
-                                <option value="" disabled>Pilih Kelurahan</option>
-                                <!-- Options akan diisi oleh JavaScript berdasarkan kecamatan yang dipilih -->
-                            </select>
-                            @if($index == 0)
-                                <button type="button" class="btn btn-success btn-sm add-kelurahan-btn" onclick="addKelurahanFieldEditAdmin()">+</button>
-                            @else
-                                <button type="button" class="btn btn-error btn-sm remove-kelurahan-btn" onclick="removeKelurahanFieldEditAdmin(this)">-</button>
-                            @endif
+                        @foreach($user->userKelurahan as $userKel)
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="{{ $userKel->kelurahan }}" class="input input-bordered input-sm w-full bg-gray-100" readonly />
+                            <input type="hidden" name="kelurahan[]" value="{{ $userKel->kelurahan }}" />
                         </div>
                         @endforeach
                     @else
-                        <div class="kelurahan-row flex gap-2 mb-2">
-                            <select name="kelurahan[]" class="select select-bordered w-full kelurahan-select-admin">
-                                <option value="" disabled selected>Pilih Kelurahan</option>
-                                <!-- Options akan diisi oleh JavaScript berdasarkan kecamatan yang dipilih -->
-                            </select>
-                            <button type="button" class="btn btn-success btn-sm add-kelurahan-btn" onclick="addKelurahanFieldEditAdmin()">+</button>
-                        </div>
+                        <input type="text" value="Belum diset" class="input input-bordered w-full bg-gray-100" readonly />
                     @endif
                 </div>
-                <input type="hidden" name="kecamatan" id="selected-kecamatan-admin" />
-                <!-- Peringatan untuk duplikasi admin -->
-                <div id="kelurahan-duplicate-warning-admin" class="alert alert-warning mt-2" style="display: none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                    <span class="text-sm">Kelurahan tidak boleh duplikat!</span>
-                </div>
+                <p class="text-xs text-gray-500 mt-1">⚠️ Kelurahan hanya dapat diubah oleh SUPERADMIN</p>
             </div>
             @endif
             @endif
             @endauth
+            
+            @auth
+            @if (Auth::user()->role == "SUPERADMIN")
             <div class="input-group">
                 <label for="password">Password Baru</label>
                 <input type="password" id="password" name="password" class="input input-bordered w-full" placeholder="************" />
             </div>
-
-            @foreach ([
-                ['name' => 'sizebaris1', 'label' => 'Size Kop Baris Pertama'],
-                ['name' => 'baris1', 'label' => 'Teks Kop Baris Pertama'],
-                ['name' => 'sizebaris2', 'label' => 'Size Kop Baris Kedua'],
-                ['name' => 'baris2', 'label' => 'Teks Kop Baris Kedua'],
-                ['name' => 'sizebaris3', 'label' => 'Size Kop Baris Ketiga'],
-                ['name' => 'baris3', 'label' => 'Teks Kop Baris Ketiga'],
-                ['name' => 'sizebaris4', 'label' => 'Size Kop Baris Keempat'],
-                ['name' => 'baris4', 'label' => 'Teks Kop Baris Keempat'],
-            ] as $item)
-                <div class="input-group">
-                    <label for="{{ $item['name'] }}">{{ $item['label'] }}</label>
-                    <input type="text" id="{{ $item['name'] }}" name="{{ $item['name'] }}" class="input input-bordered w-full" required value="{{ $user[$item['name']] ?? '' }}" />
-                </div>
-            @endforeach
-            
-            @auth
-            @if (Auth::user()->role == "SUPERADMIN")
-                <!-- Baris 5 - Only show for ADMIN users -->
-                @if($user['role'] == 'ADMIN')
-                    <div class="input-group">
-                        <label for="sizebaris5">Size Kop Baris Kelima</label>
-                        <input type="text" id="sizebaris5" name="sizebaris5" class="input input-bordered w-full" value="{{ $user['sizebaris5'] ?? '13px' }}" />
-                    </div>
-                    <div class="input-group">
-                        <label for="baris5">Teks Kop Baris Kelima</label>
-                        <input type="text" id="baris5" name="baris5" class="input input-bordered w-full" value="{{ $user['baris5'] ?? '' }}" />
-                    </div>
-                @endif
             @else
-                <!-- For ADMIN editing their own profile -->
-                @if($user['role'] == 'ADMIN')
-                    <div class="input-group">
-                        <label for="sizebaris5">Size Kop Baris Kelima</label>
-                        <input type="text" id="sizebaris5" name="sizebaris5" class="input input-bordered w-full" required value="{{ $user['sizebaris5'] ?? '13px' }}" />
-                    </div>
-                    <div class="input-group">
-                        <label for="baris5">Teks Kop Baris Kelima</label>
-                        <input type="text" id="baris5" name="baris5" class="input input-bordered w-full" required value="{{ $user['baris5'] ?? '' }}" />
-                    </div>
-                @endif
+            <div class="input-group">
+                <label for="password">Password (Tidak dapat diubah)</label>
+                <input type="text" value="••••••••" class="input input-bordered w-full bg-gray-100" readonly />
+                <p class="text-xs text-gray-500 mt-1">⚠️ Password hanya dapat diubah oleh SUPERADMIN</p>
+            </div>
             @endif
             @endauth
+
+            <!-- Dynamic Kop Surat Lines (max 10) -->
+            <div class="sm:col-span-2 mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                <h4 class="text-md font-semibold text-green-800 mb-3">✏️ Pengaturan Kop Surat</h4>
+                <p class="text-xs text-green-600 mb-4">Atur teks dan ukuran untuk setiap baris kop surat. Maksimal 10 baris dapat ditambahkan.</p>
+                
+                <div id="kop-surat-container">
+                    @for($i = 1; $i <= 10; $i++)
+                        @php
+                            $maxLines = ($user['role'] == 'SUPERADMIN') ? 4 : 10;
+                            $requiredLines = ($user['role'] == 'SUPERADMIN') ? 4 : 4;
+                            $hasContent = !empty($user["baris{$i}"]) || $i <= $requiredLines;
+                            
+                            // Hide lines beyond max for user role
+                            if ($i > $maxLines) {
+                                $hasContent = false;
+                            }
+                        @endphp
+                        <div class="kop-line-group mb-4 {{ !$hasContent ? 'hidden' : '' }}" data-line="{{ $i }}">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h5 class="font-medium text-gray-700">Baris {{ $i }}</h5>
+                                @if($i > 4 && $user['role'] == 'ADMIN')
+                                    <button type="button" onclick="removeKopLine({{ $i }})" class="btn btn-xs btn-error btn-outline">
+                                        ✕ Hapus
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div class="md:col-span-1">
+                                    <label for="sizebaris{{ $i }}" class="text-xs text-gray-600">Ukuran Font</label>
+                                    <select id="sizebaris{{ $i }}" name="sizebaris{{ $i }}" class="select select-bordered select-sm w-full">
+                                        <option value="8px" {{ ($user["sizebaris{$i}"] ?? '13px') == '8px' ? 'selected' : '' }}>8px</option>
+                                        <option value="10px" {{ ($user["sizebaris{$i}"] ?? '13px') == '10px' ? 'selected' : '' }}>10px</option>
+                                        <option value="12px" {{ ($user["sizebaris{$i}"] ?? '13px') == '12px' ? 'selected' : '' }}>12px</option>
+                                        <option value="13px" {{ ($user["sizebaris{$i}"] ?? '13px') == '13px' ? 'selected' : '' }}>13px</option>
+                                        <option value="14px" {{ ($user["sizebaris{$i}"] ?? '13px') == '14px' ? 'selected' : '' }}>14px</option>
+                                        <option value="16px" {{ ($user["sizebaris{$i}"] ?? '13px') == '16px' ? 'selected' : '' }}>16px</option>
+                                        <option value="18px" {{ ($user["sizebaris{$i}"] ?? '13px') == '18px' ? 'selected' : '' }}>18px</option>
+                                        <option value="20px" {{ ($user["sizebaris{$i}"] ?? '13px') == '20px' ? 'selected' : '' }}>20px</option>
+                                        <option value="22px" {{ ($user["sizebaris{$i}"] ?? '13px') == '22px' ? 'selected' : '' }}>22px</option>
+                                        <option value="24px" {{ ($user["sizebaris{$i}"] ?? '13px') == '24px' ? 'selected' : '' }}>24px</option>
+                                        <option value="25px" {{ ($user["sizebaris{$i}"] ?? '13px') == '25px' ? 'selected' : '' }}>25px</option>
+                                        <option value="28px" {{ ($user["sizebaris{$i}"] ?? '13px') == '28px' ? 'selected' : '' }}>28px</option>
+                                        <option value="30px" {{ ($user["sizebaris{$i}"] ?? '13px') == '30px' ? 'selected' : '' }}>30px</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="baris{{ $i }}" class="text-xs text-gray-600">Teks Baris {{ $i }}</label>
+                                    <input type="text" 
+                                           id="baris{{ $i }}" 
+                                           name="baris{{ $i }}" 
+                                           class="input input-bordered input-sm w-full" 
+                                           {{ $i <= 4 ? 'required' : '' }}
+                                           value="{{ $user["baris{$i}"] ?? '' }}" 
+                                           placeholder="Masukkan teks untuk baris {{ $i }}..." />
+                                </div>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
+                
+                <!-- Add Line Button -->
+                @if($user['role'] == 'ADMIN')
+                <div class="mt-4">
+                    <button type="button" onclick="addKopLine()" id="add-kop-line-btn" class="btn btn-sm btn-success btn-outline">
+                        ➕ Tambah Baris Kop Surat
+                    </button>
+                    <span class="text-xs text-gray-500 ml-2">Maksimal 10 baris</span>
+                </div>
+                @else
+                <div class="mt-4">
+                    <span class="text-xs text-gray-500">Super Admin terbatas 4 baris kop surat</span>
+                </div>
+                @endif
+            </div>
 
             <!-- Preview Kop Surat Section -->
             <div class="sm:col-span-2 mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
@@ -216,574 +258,15 @@
 @endauth
 
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-function toggleKelurahanFieldEdit() {
-    const roleSelect = document.getElementById('role');
-    const kecamatanField = document.getElementById('kecamatan-field');
-    const kelurahanField = document.getElementById('kelurahan-field');
-    const kecamatanInput = document.getElementById('kec');
-    const kelurahanInputs = document.querySelectorAll('.kelurahan-select');
-    
-    // Show/hide kecamatan and kelurahan fields based on role
-    if (roleSelect.value === 'ADMIN') {
-        kecamatanField.style.display = 'block';
-        kelurahanField.style.display = 'block';
-        kecamatanInput.required = true;
-        kelurahanInputs.forEach(input => {
-            input.required = true;
-        });
-    } else {
-        kecamatanField.style.display = 'none';
-        kelurahanField.style.display = 'none';
-        kecamatanInput.required = false;
-        kelurahanInputs.forEach(input => {
-            input.required = false;
-            input.value = '';
-        });
-        kecamatanInput.value = '';
-        
-        // Reset kelurahan container
-        resetKelurahanContainerEdit();
-    }
-    
-    // Handle baris5 fields visibility - show only for ADMIN role
-    const sizeBarisFields = document.querySelectorAll('input[name="sizebaris5"]');
-    const barisFields = document.querySelectorAll('input[name="baris5"]');
-    
-    if (roleSelect.value === 'ADMIN') {
-        // Show baris5 fields for ADMIN
-        sizeBarisFields.forEach(field => {
-            if (field.closest('.input-group')) {
-                field.closest('.input-group').style.display = 'block';
-                field.required = true;
-            }
-        });
-        barisFields.forEach(field => {
-            if (field.closest('.input-group')) {
-                field.closest('.input-group').style.display = 'block';
-                field.required = true;
-            }
-        });
-    } else {
-        // Hide baris5 fields for SUPERADMIN
-        sizeBarisFields.forEach(field => {
-            if (field.closest('.input-group')) {
-                field.closest('.input-group').style.display = 'none';
-                field.required = false;
-                field.value = '';
-            }
-        });
-        barisFields.forEach(field => {
-            if (field.closest('.input-group')) {
-                field.closest('.input-group').style.display = 'none';
-                field.required = false;
-                field.value = '';
-            }
-        });
-    }
-}
-
-function addKelurahanFieldEdit() {
-    const container = document.getElementById('kelurahan-container');
-    const newRow = document.createElement('div');
-    newRow.className = 'kelurahan-row flex gap-2 mb-2';
-    
-    newRow.innerHTML = `
-        <select name="kelurahan[]" class="select select-bordered w-full kelurahan-select" required>
-            <option value="">Pilih Kelurahan</option>
-        </select>
-        <button type="button" class="btn btn-error btn-sm remove-kelurahan-btn" onclick="removeKelurahanFieldEdit(this)">-</button>
-    `;
-    
-    container.appendChild(newRow);
-    updateKelurahanOptionsEdit();
-    
-    // Cek duplikasi setelah menambah field
-    checkKelurahanDuplicatesEdit();
-}
-
-function removeKelurahanFieldEdit(button) {
-    const container = document.getElementById('kelurahan-container');
-    const rows = container.querySelectorAll('.kelurahan-row');
-    
-    if (rows.length > 1) {
-        button.closest('.kelurahan-row').remove();
-        updateKelurahanOptionsEdit();
-        
-        // Cek duplikasi setelah menghapus field
-        checkKelurahanDuplicatesEdit();
-    }
-}
-
-function addKelurahanFieldEditAdmin() {
-    const container = document.getElementById('kelurahan-container-admin');
-    const newRow = document.createElement('div');
-    newRow.className = 'kelurahan-row flex gap-2 mb-2';
-    
-    newRow.innerHTML = `
-        <select name="kelurahan[]" class="select select-bordered w-full kelurahan-select-admin" required>
-            <option value="">Pilih Kelurahan</option>
-        </select>
-        <button type="button" class="btn btn-error btn-sm remove-kelurahan-btn" onclick="removeKelurahanFieldEditAdmin(this)">-</button>
-    `;
-    
-    container.appendChild(newRow);
-    updateKelurahanOptionsEditAdmin();
-    
-    // Cek duplikasi setelah menambah field
-    checkKelurahanDuplicatesEditAdmin();
-}
-
-function removeKelurahanFieldEditAdmin(button) {
-    const container = document.getElementById('kelurahan-container-admin');
-    const rows = container.querySelectorAll('.kelurahan-row');
-    
-    if (rows.length > 1) {
-        button.closest('.kelurahan-row').remove();
-        updateKelurahanOptionsEditAdmin();
-        
-        // Cek duplikasi setelah menghapus field
-        checkKelurahanDuplicatesEditAdmin();
-    }
-}
-
-function resetKelurahanContainerEdit() {
-    const container = document.getElementById('kelurahan-container');
-    if (container) {
-        container.innerHTML = `
-            <div class="kelurahan-row flex gap-2 mb-2">
-                <select name="kelurahan[]" class="select select-bordered w-full kelurahan-select">
-                    <option value="" disabled selected>Pilih Kelurahan</option>
-                </select>
-                <button type="button" class="btn btn-success btn-sm add-kelurahan-btn" onclick="addKelurahanFieldEdit()">+</button>
-            </div>
-        `;
-    }
-}
-
-function updateKelurahanOptionsEdit() {
-    setTimeout(() => {
-        const firstSelect = document.querySelector('.kelurahan-select');
-        if (!firstSelect || firstSelect.options.length <= 1) {
-            console.log('Kelurahan options not loaded yet, retrying...');
-            setTimeout(updateKelurahanOptionsEdit, 500);
-            return;
-        }
-        
-        // Get all selected kelurahan values to exclude them from other dropdowns
-        const selectedKelurahan = [];
-        document.querySelectorAll('.kelurahan-select').forEach(select => {
-            if (select.value && select.value !== '') {
-                selectedKelurahan.push(select.value);
-            }
-        });
-        
-        const allOptions = Array.from(firstSelect.options).map(option => ({
-            value: option.value,
-            text: option.text
-        }));
-        
-        document.querySelectorAll('.kelurahan-select').forEach(select => {
-            const currentValue = select.value;
-            
-            // Hanya rebuild jika select kosong atau hanya punya placeholder
-            if (select.options.length <= 1) {
-                select.innerHTML = '';
-                allOptions.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.value;
-                    optionElement.text = option.text;
-                    select.appendChild(optionElement);
-                });
-            }
-            
-            // Update visibility/availability dari existing options
-            Array.from(select.options).forEach(option => {
-                if (option.value === '') return; // Skip placeholder
-                
-                // Hide/show option berdasarkan apakah sudah dipilih di select lain
-                if (selectedKelurahan.includes(option.value) && currentValue !== option.value) {
-                    option.style.display = 'none';
-                    option.disabled = true;
-                } else {
-                    option.style.display = 'block';
-                    option.disabled = false;
-                }
-            });
-            
-            // Restore nilai yang sudah dipilih sebelumnya
-            if (currentValue) {
-                select.value = currentValue;
-            }
-            
-            // Add event listener untuk change event (hanya jika belum ada)
-            if (!select.hasAttribute('data-listener-added')) {
-                select.addEventListener('change', function() {
-                    updateKelurahanOptionsEdit();
-                    checkKelurahanDuplicatesEdit();
-                });
-                select.setAttribute('data-listener-added', 'true');
-            }
-        });
-        
-        // Cek duplikasi setelah update opsi
-        checkKelurahanDuplicatesEdit();
-    }, 100);
-}
-
-function checkKelurahanDuplicatesEdit() {
-    const selects = document.querySelectorAll('.kelurahan-select');
-    const selectedValues = [];
-    let hasDuplicate = false;
-    
-    selects.forEach(select => {
-        if (select.value) {
-            if (selectedValues.includes(select.value)) {
-                hasDuplicate = true;
-            }
-            selectedValues.push(select.value);
-        }
-    });
-    
-    const warningDiv = document.getElementById('kelurahan-duplicate-warning');
-    const submitButton = document.querySelector('button[type="submit"]');
-    
-    if (hasDuplicate) {
-        if (warningDiv) warningDiv.style.display = 'block';
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.classList.add('btn-disabled');
-        }
-    } else {
-        if (warningDiv) warningDiv.style.display = 'none';
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.classList.remove('btn-disabled');
-        }
-    }
-}
-
-function updateKelurahanOptionsEditAdmin() {
-    setTimeout(() => {
-        const firstSelect = document.querySelector('.kelurahan-select-admin');
-        if (!firstSelect || firstSelect.options.length <= 1) {
-            console.log('Kelurahan admin options not loaded yet, retrying...');
-            setTimeout(updateKelurahanOptionsEditAdmin, 500);
-            return;
-        }
-        
-        // Get all selected kelurahan values to exclude them from other dropdowns
-        const selectedKelurahan = [];
-        document.querySelectorAll('.kelurahan-select-admin').forEach(select => {
-            if (select.value && select.value !== '') {
-                selectedKelurahan.push(select.value);
-            }
-        });
-        
-        const allOptions = Array.from(firstSelect.options).map(option => ({
-            value: option.value,
-            text: option.text
-        }));
-        
-        document.querySelectorAll('.kelurahan-select-admin').forEach(select => {
-            const currentValue = select.value;
-            
-            // Hanya rebuild jika select kosong atau hanya punya placeholder
-            if (select.options.length <= 1) {
-                select.innerHTML = '';
-                allOptions.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.value;
-                    optionElement.text = option.text;
-                    select.appendChild(optionElement);
-                });
-            }
-            
-            // Update visibility/availability dari existing options
-            Array.from(select.options).forEach(option => {
-                if (option.value === '') return; // Skip placeholder
-                
-                // Hide/show option berdasarkan apakah sudah dipilih di select lain
-                if (selectedKelurahan.includes(option.value) && currentValue !== option.value) {
-                    option.style.display = 'none';
-                    option.disabled = true;
-                } else {
-                    option.style.display = 'block';
-                    option.disabled = false;
-                }
-            });
-            
-            // Restore nilai yang sudah dipilih sebelumnya
-            if (currentValue) {
-                select.value = currentValue;
-            }
-            
-            // Add event listener untuk change event (hanya jika belum ada)
-            if (!select.hasAttribute('data-listener-added-admin')) {
-                select.addEventListener('change', function() {
-                    updateKelurahanOptionsEditAdmin();
-                    checkKelurahanDuplicatesEditAdmin();
-                });
-                select.setAttribute('data-listener-added-admin', 'true');
-            }
-        });
-        
-        // Cek duplikasi setelah update opsi
-        checkKelurahanDuplicatesEditAdmin();
-    }, 100);
-}
-
-function checkKelurahanDuplicatesEditAdmin() {
-    const selects = document.querySelectorAll('.kelurahan-select-admin');
-    const selectedValues = [];
-    let hasDuplicate = false;
-    
-    selects.forEach(select => {
-        if (select.value) {
-            if (selectedValues.includes(select.value)) {
-                hasDuplicate = true;
-            }
-            selectedValues.push(select.value);
-        }
-    });
-    
-    const warningDiv = document.getElementById('kelurahan-duplicate-warning-admin');
-    const submitButton = document.querySelector('button[type="submit"]');
-    
-    if (hasDuplicate) {
-        if (warningDiv) warningDiv.style.display = 'block';
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.classList.add('btn-disabled');
-        }
-    } else {
-        if (warningDiv) warningDiv.style.display = 'none';
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.classList.remove('btn-disabled');
-        }
-    }
-}
-
-// Initialize districts on page load
-$(document).ready(function() {
-    // Wait for the getDistrictsAndVillages.js to initialize
-    setTimeout(function() {
-        // Event handler untuk perubahan kecamatan (superadmin edit admin)
-        $('#kec').off('change.edit').on('change.edit', function() {
-            const selectedKecamatan = $(this).val();
-            
-            // Set hidden input untuk kecamatan
-            $('#selected-kecamatan').val(selectedKecamatan);
-            
-            // Update all kelurahan options when kecamatan changes
-            setTimeout(updateKelurahanOptionsEdit, 1500);
-        });
-        
-        // Event handler untuk perubahan kecamatan (admin edit sendiri)
-        $('#kec-admin').off('change.edit-admin').on('change.edit-admin', function() {
-            const selectedKecamatan = $(this).val();
-            
-            // Set hidden input untuk kecamatan
-            $('#selected-kecamatan-admin').val(selectedKecamatan);
-            
-            // Update all kelurahan options when kecamatan changes
-            setTimeout(updateKelurahanOptionsEditAdmin, 1500);
-        });
-        
-        // Add event listener for kelurahan change to update other dropdowns
-        $(document).off('change.kelurahan-edit', '.kelurahan-select').on('change.kelurahan-edit', '.kelurahan-select', function() {
-            updateKelurahanOptionsEdit();
-        });
-        
-        $(document).off('change.kelurahan-edit-admin', '.kelurahan-select-admin').on('change.kelurahan-edit-admin', '.kelurahan-select-admin', function() {
-            updateKelurahanOptionsEditAdmin();
-        });
-        
-        // Jika user sudah memiliki kelurahan, set default value
-        @if(isset($user['kelurahan']) && isset($user['kecamatan']))
-            // Set kecamatan terlebih dahulu
-            setTimeout(function() {
-                // Cari kecamatan berdasarkan kelurahan yang sudah ada
-                @if (Auth::user()->role == "SUPERADMIN")
-                    findAndSetKecamatanByKelurahan('{{ $user['kelurahan'] }}', '{{ $user['kecamatan'] ?? '' }}');
-                @else
-                    findAndSetKecamatanByKelurahanAdmin('{{ $user['kelurahan'] }}', '{{ $user['kecamatan'] ?? '' }}');
-                @endif
-            }, 1000);
-        @elseif($user->userKelurahan->count() > 0)
-            // Handle multiple kelurahan
-            setTimeout(function() {
-                const userKelurahan = @json($user->userKelurahan->toArray());
-                @if (Auth::user()->role == "SUPERADMIN")
-                    findAndSetMultipleKelurahan(userKelurahan);
-                @else
-                    findAndSetMultipleKelurahanAdmin(userKelurahan);
-                @endif
-            }, 1000);
-        @endif
-    }, 500);
-    
-    toggleKelurahanFieldEdit();
-});
-
-// Function untuk mencari dan set multiple kelurahan
-function findAndSetMultipleKelurahan(userKelurahan) {
-    if (userKelurahan.length === 0) return;
-    
-    const kecamatanValue = userKelurahan[0].kecamatan;
-    
-    // Set hidden input untuk kecamatan
-    $('#selected-kecamatan').val(kecamatanValue);
-    
-    // Cari dan set kecamatan
-    $('#kec option').each(function() {
-        if ($(this).val() === kecamatanValue || $(this).text() === kecamatanValue) {
-            $(this).prop('selected', true);
-            $('#kec').trigger('change');
-            
-            // Setelah kelurahan dimuat, set semua kelurahan yang dipilih
-            setTimeout(function() {
-                $('.kelurahan-select').each(function(index) {
-                    if (userKelurahan[index]) {
-                        const kelurahanValue = userKelurahan[index].kelurahan;
-                        $(this).find('option').each(function() {
-                            if ($(this).val() === kelurahanValue || $(this).text() === kelurahanValue) {
-                                $(this).prop('selected', true);
-                                return false;
-                            }
-                        });
-                    }
-                });
-            }, 1500);
-            
-            return false; // break loop
-        }
-    });
-}
-
-// Function untuk mencari dan set multiple kelurahan (Admin edit sendiri)
-function findAndSetMultipleKelurahanAdmin(userKelurahan) {
-    if (userKelurahan.length === 0) return;
-    
-    const kecamatanValue = userKelurahan[0].kecamatan;
-    
-    // Set hidden input untuk kecamatan
-    $('#selected-kecamatan-admin').val(kecamatanValue);
-    
-    // Cari dan set kecamatan
-    $('#kec-admin option').each(function() {
-        if ($(this).val() === kecamatanValue || $(this).text() === kecamatanValue) {
-            $(this).prop('selected', true);
-            $('#kec-admin').trigger('change');
-            
-            // Setelah kelurahan dimuat, set semua kelurahan yang dipilih
-            setTimeout(function() {
-                $('.kelurahan-select-admin').each(function(index) {
-                    if (userKelurahan[index]) {
-                        const kelurahanValue = userKelurahan[index].kelurahan;
-                        $(this).find('option').each(function() {
-                            if ($(this).val() === kelurahanValue || $(this).text() === kelurahanValue) {
-                                $(this).prop('selected', true);
-                                return false;
-                            }
-                        });
-                    }
-                });
-            }, 1500);
-            
-            return false; // break loop
-        }
-    });
-}
-
-// Function untuk mencari dan set kecamatan berdasarkan kelurahan
-function findAndSetKecamatanByKelurahan(kelurahanValue, kecamatanValue) {
-    // Jika kecamatan sudah ada, set langsung
-    if (kecamatanValue) {
-        // Set hidden input untuk kecamatan
-        $('#selected-kecamatan').val(kecamatanValue);
-        
-        // Cari dan set kecamatan
-        $('#kec option').each(function() {
-            if ($(this).val() === kecamatanValue || $(this).text() === kecamatanValue) {
-                $(this).prop('selected', true);
-                $('#kec').trigger('change');
-                
-                // Setelah kelurahan dimuat, set kelurahan yang dipilih
-                setTimeout(function() {
-                    $('.kelurahan-select').first().find('option').each(function() {
-                        if ($(this).val() === kelurahanValue || $(this).text() === kelurahanValue) {
-                            $(this).prop('selected', true);
-                            return false; // break loop
-                        }
-                    });
-                }, 1000);
-                
-                return false; // break loop
-            }
-        });
-    }
-}
-
-// Function untuk mencari dan set kecamatan berdasarkan kelurahan (Admin edit sendiri)
-function findAndSetKecamatanByKelurahanAdmin(kelurahanValue, kecamatanValue) {
-    // Jika kecamatan sudah ada, set langsung
-    if (kecamatanValue) {
-        // Set hidden input untuk kecamatan
-        $('#selected-kecamatan-admin').val(kecamatanValue);
-        
-        // Cari dan set kecamatan
-        $('#kec-admin option').each(function() {
-            if ($(this).val() === kecamatanValue || $(this).text() === kecamatanValue) {
-                $(this).prop('selected', true);
-                $('#kec-admin').trigger('change');
-                
-                // Setelah kelurahan dimuat, set kelurahan yang dipilih
-                setTimeout(function() {
-                    $('.kelurahan-select-admin').first().find('option').each(function() {
-                        if ($(this).val() === kelurahanValue || $(this).text() === kelurahanValue) {
-                            $(this).prop('selected', true);
-                            return false; // break loop
-                        }
-                    });
-                }, 1000);
-                
-                return false; // break loop
-            }
-        });
-    }
-}
-
-// Function untuk preview kop surat
-function previewKopSurat() {
-    // Ambil data dari form
-    const formData = {
-        sizebaris1: document.getElementById('sizebaris1').value || '18px',
-        baris1: document.getElementById('baris1').value || '',
-        sizebaris2: document.getElementById('sizebaris2').value || '25px',
-        baris2: document.getElementById('baris2').value || '',
-        sizebaris3: document.getElementById('sizebaris3').value || '25px',
-        baris3: document.getElementById('baris3').value || '',
-        sizebaris4: document.getElementById('sizebaris4').value || '13px',
-        baris4: document.getElementById('baris4').value || '',
-    };
-    
-    // Tambahkan baris 5 jika user adalah ADMIN
-    const sizebaris5Input = document.getElementById('sizebaris5');
-    const baris5Input = document.getElementById('baris5');
-    if (sizebaris5Input && baris5Input) {
-        formData.sizebaris5 = sizebaris5Input.value || '13px';
-        formData.baris5 = baris5Input.value || '';
-    }
-    
-    // Buat URL dengan parameter
-    const params = new URLSearchParams(formData);
-    const url = `{{ route("kop-surat.preview.pdf") }}?${params.toString()}`;
-    
-    // Buka PDF di tab baru
-    window.open(url, '_blank');
-}
-</script>
+<div data-window-var="userEditData" 
+     data-user-kelurahan-json='@json($user->userKelurahan->toArray())'
+     data-user-kelurahan="{{ $user['kelurahan'] ?? '' }}"
+     data-user-kecamatan="{{ $user['kecamatan'] ?? '' }}"
+     data-auth-user-role="{{ Auth::user()->role }}"
+     data-kop-surat-preview-route="{{ route('kop-surat.preview.pdf') }}"
+     data-csrf-token="{{ csrf_token() }}"
+     style="display:none;">
+</div>
+<script src="{{ asset('js/user/edit.js') }}"></script>
 
 @endsection

@@ -165,8 +165,8 @@
                     @if (Auth::user()->role == "SUPERADMIN")
                     <button type="button" class="btn btn-error btn-outline" onclick="showDeleteGeraiConfirmation('{{ $gerai['subjek'] }}', '{{ $gerai['id'] }}')"><i class="ri-delete-bin-6-line"></i></button>
                     @endif
-                    @endauth
                     <a href="{{ route('gerai-kantin.index', ['export' => 'pdf', 'id' => $gerai['id']]) }}" class="btn btn-primary"><i class="ri-upload-2-line"></i></a>
+                    @endauth
                 </td>
             </tr>
             @endforeach
@@ -232,80 +232,39 @@
 
 <div class="px-3 pb-3 sm:px-6 sm:pb-6 grid grid-flow-row sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
     @auth
-    @if (Auth::user()->role == "SUPERADMIN")
+    @php
+        $user = Auth::user();
+        $canEdit = false;
+        $canDelete = false;
+        $canExportPdf = false;
+        
+        if ($user->role == "SUPERADMIN") {
+            // Superadmin bisa edit/delete/export PDF semua form
+            $canEdit = true;
+            $canDelete = true;
+            $canExportPdf = true;
+        } elseif ($user->role == "ADMIN") {
+            // Admin hanya bisa edit/delete/export PDF form miliknya sendiri
+            $canEdit = isset($form_data['user_id']) && $form_data['user_id'] == $user->id;
+            $canDelete = isset($form_data['user_id']) && $form_data['user_id'] == $user->id;
+            $canExportPdf = isset($form_data['user_id']) && $form_data['user_id'] == $user->id;
+        }
+    @endphp
+    
+    @if ($canDelete)
     <button type="button" class="btn btn-error btn-outline" onclick="showDeleteMainInspectionConfirmation()">HAPUS HASIL PENILAIAN</button>
     @endif
-    @if (Auth::user()->role != "USER")
+    @if ($canEdit)
     <a href="{{ $edit_route }}" class="btn btn-warning">UBAH INFORMASI / PENILAIAN</a>
     @endif
-    @endauth
+    @if ($canExportPdf)
     <a href="{{ $export_route }}" class="btn btn-primary">EXPORT HASIL (PDF) <i class="ri-upload-2-line"></i></a>
+    @endif
+    @endauth
 </div>
 
 <x-modal.confirmation />
-
-<script>
-    let geraiDeleteBaseURL = `{{ route('gerai-kantin.destroy', ['gerai_kantin' => 0]) }}`;
-    
-    function showDeleteGeraiConfirmation(geraiName, geraiId) {
-        showDeleteConfirmationModal(
-            'Hapus Gerai',
-            `Apakah Anda yakin ingin menghapus gerai "${geraiName}"? Data yang dihapus tidak dapat dikembalikan.`,
-            function() {
-                // Create form and submit
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = geraiDeleteBaseURL.substr(0, geraiDeleteBaseURL.length - 1) + geraiId;
-                
-                // Add CSRF token
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                form.appendChild(csrfToken);
-                
-                // Add method override for DELETE
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'DELETE';
-                form.appendChild(methodField);
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
-        );
-    }
-    
-    function showDeleteMainInspectionConfirmation() {
-        showDeleteConfirmationModal(
-            'Hapus Hasil Inspeksi',
-            'Apakah Anda yakin ingin menghapus hasil inspeksi ini? Data yang dihapus tidak dapat dikembalikan.',
-            function() {
-                // Create form and submit
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ $destroy_route }}';
-                
-                // Add CSRF token
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                form.appendChild(csrfToken);
-                
-                // Add method override for DELETE
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'DELETE';
-                form.appendChild(methodField);
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
-        );
-    }
-</script>
+<div data-window-var="showPageData" data-gerai-delete-base-url="{{ route('gerai-kantin.destroy', ['gerai_kantin' => 0]) }}" data-destroy-route="{{ $destroy_route }}" data-csrf-token="{{ csrf_token() }}" style="display:none;"></div>
+<script src="{{ asset('js/inspection/show.js') }}"></script>
 
 @endsection

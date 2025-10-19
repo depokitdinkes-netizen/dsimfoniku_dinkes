@@ -33,23 +33,6 @@
                         <option value="Other">Yang Lain</option>
                     </select>
                     <input type="text" id="u001" name="u001" placeholder="Ketikan Kategori" class="hidden" required />
-
-                    <script>
-                        $(document).ready(function() {
-                            $('#u001-select').change(function() {
-                                $('#u001').val(this.value);
-
-                                if (this.value == 'Other') {
-                                    $('#u001').removeClass('hidden');
-                                    $('#u001').prop('required', true)
-                                    $('#u001').val('');
-                                } else {
-                                    $('#u001').addClass('hidden');
-                                    $('#u001').removeAttr('required');
-                                }
-                            })
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -62,21 +45,6 @@
                         <option value="-1">Tidak Ada</option>
                     </select>
                     <input type="number" id="sk-pengelola" name="sk-pengelola" placeholder="Ketikan SK" class="hidden" />
-
-                    <script>
-                        $(document).ready(function() {
-                            $('#sk-pengelola-select').change(function() {
-                                if (this.value == 1) {
-                                    $('#sk-pengelola').removeClass('hidden');
-                                    $('#sk-pengelola').prop('required', true)
-                                } else {
-                                    $('#sk-pengelola').addClass('hidden');
-                                    $('#sk-pengelola').removeAttr('required');
-                                    $('#sk-pengelola').val('');
-                                }
-                            })
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -283,32 +251,12 @@
 </form>
 
 <x-modal.get-lat-long />
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && issuedDateInput.value && expireDateInput) {
-            const issuedDate = new Date(issuedDateInput.value);
-            // Add 3 years to the issued date
-             issuedDate.setFullYear(issuedDate.getFullYear() + 3);
-            
-            // Format the date as YYYY-MM-DD
-            const year = issuedDate.getFullYear();
-            const month = String(issuedDate.getMonth() + 1).padStart(2, '0');
-            const day = String(issuedDate.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
-            
-            expireDateInput.value = formattedDate;
-        } else if (expireDateInput) {
-            // Clear expire date if no issued date
-            expireDateInput.value = '';
-        }
-    }
 
-    // Auto-calculate on page load if issued date already filled
-    calculateSlhsExpireDate();
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<script src="{{ asset('js/inspection/sam/perpipaan-non-pdam/create.js') }}"></script>
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

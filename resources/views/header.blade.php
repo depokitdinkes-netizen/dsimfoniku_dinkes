@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/universal-data-init.js') }}"></script>
 </head>
 
 <body class="relative bg-slate-50">

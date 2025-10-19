@@ -274,123 +274,13 @@
 
 <x-modal.get-lat-long />
 
-<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-        
-        console.log('Edit form initialized with:', { kecVal, kelVal });
-
-        // Function to populate kecamatan dropdown with existing value
-        function populateKecamatan() {
-            if (kecamatan.length > 0) {
-                let options = '<option value="">Pilih Kecamatan</option>';
-                
-                kecamatan.forEach((el) => {
-                    const selected = kecVal == el.name ? 'selected' : '';
-                    options += `<option value="${el.name}" ${selected}>${el.name}</option>`;
-                });
-                
-                $("#kec").html(options);
-                $("#kec").prop('disabled', false);
-                
-                // If there's a pre-selected kecamatan, load its kelurahan
-                if (kecVal) {
-                    populateKelurahan(kecVal);
-                }
-                
-                return true;
-            }
-            return false;
-        }
-        
-        // Function to populate kelurahan dropdown
-        function populateKelurahan(kecamatanName) {
-            const selectedKec = kecamatan.find((el) => el.name === kecamatanName);
-            
-            if (!selectedKec) {
-                console.error('Kecamatan not found:', kecamatanName);
-                $("#kel").html('<option value="">Kecamatan tidak ditemukan</option>');
-                $("#kel").prop('disabled', true);
-                return;
-            }
-            
-            $("#kel").html('<option value="">Memuat kelurahan...</option>');
-            $("#kel").prop('disabled', true);
-            
-            fetch(`https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${selectedKec.id}.json`)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then((villages) => {
-                    let options = '<option value="">Pilih Kelurahan</option>';
-                    
-                    villages.forEach((el) => {
-                        const selected = kelVal == el.name ? 'selected' : '';
-                        options += `<option value="${el.name}" ${selected}>${el.name}</option>`;
-                    });
-                    
-                    $("#kel").html(options);
-                    $("#kel").prop('disabled', false);
-                    
-                    console.log('Kelurahan loaded successfully:', villages.length, 'items');
-                })
-                .catch((error) => {
-                    console.error('Error loading villages:', error);
-                    $("#kel").html('<option value="">Gagal memuat kelurahan</option>');
-                    $("#kel").prop('disabled', false);
-                });
-        }
-        
-        // Wait for kecamatan data to load, then populate dropdowns
-        let checkInterval = setInterval(function() {
-            if (populateKecamatan()) {
-                clearInterval(checkInterval);
-            }
-        }, 100);
-        
-        // Handle kecamatan change event
-        $(document).on('change', '#kec', function() {
-            const selectedKecamatan = $(this).val();
-            
-            if (selectedKecamatan) {
-                populateKelurahan(selectedKecamatan);
-            } else {
-                $("#kel").html('<option value="">Pilih Kelurahan</option>');
-                $("#kel").prop('disabled', false);
-            }
-        });
-    });
-
-    function calculateSlhsExpireDate() {
-        const issuedDateInput = document.getElementById('slhs_issued_date');
-        const expireDateInput = document.getElementById('slhs_expire_date');
-        
-        if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-            // Parse issued date
-            const issuedDate = new Date(issuedDateInput.value);
-            
-            // Add 3 years
-            const expireDate = new Date(issuedDate);
-            expireDate.setFullYear(expireDate.getFullYear() + 3);
-            
-            // Format to YYYY-MM-DD
-            const formattedDate = expireDate.toISOString().split('T')[0];
-            
-            // Set expire date
-            expireDateInput.value = formattedDate;
-        } else if (expireDateInput) {
-            // Clear expire date if no issued date
-            expireDateInput.value = '';
-        }
-    }
-
-    // Auto-calculate on page load if issued date already filled
-    calculateSlhsExpireDate();
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
+
+<div data-window-var="damEditData" data-kecamatan="{{ $form_data['kecamatan'] }}" data-kelurahan="{{ $form_data['kelurahan'] }}" style="display:none;"></div>
+
+<script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
+<script src="{{ asset('js/inspection/dam/edit.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
 @endsection

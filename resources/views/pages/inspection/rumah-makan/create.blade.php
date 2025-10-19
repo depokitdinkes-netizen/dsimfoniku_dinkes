@@ -222,35 +222,9 @@
 <x-modal.get-lat-long />
 
 <script>
-function calculateSlhsExpireDate() {
-    const issuedDateInput = document.getElementById('slhs_issued_date');
-    const expireDateInput = document.getElementById('slhs_expire_date');
-    
-    if (issuedDateInput && expireDateInput && issuedDateInput.value) {
-        // Parse issued date
-        const issuedDate = new Date(issuedDateInput.value);
-        
-        // Add 3 years
-        const expireDate = new Date(issuedDate);
-        expireDate.setFullYear(expireDate.getFullYear() + 3);
-        
-        // Format to YYYY-MM-DD
-        const formattedDate = expireDate.toISOString().split('T')[0];
-        
-        // Set expire date
-        expireDateInput.value = formattedDate;
-    } else if (expireDateInput) {
-        // Clear expire date if no issued date
-        expireDateInput.value = '';
-    }
-}
-
-// Auto-calculate on page load if issued date already filled
-document.addEventListener('DOMContentLoaded', function() {
-    calculateSlhsExpireDate();
-});
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 </script>
-
+<script src="{{ asset('js/inspection/rumah-makan/create.js') }}"></script>
 <script src="{{ asset('js/fallbackData.js') }}"></script>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>

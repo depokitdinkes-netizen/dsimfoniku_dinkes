@@ -713,6 +713,7 @@ class RestoranController extends Controller
                     'rencana' => $item['rencana-tindak-lanjut'],
                     'pengelola' => $item['pengelola'],
                     'pemeriksa' => $item['nama-pemeriksa'],
+                    'is_superadmin' => Auth::check() && Auth::user()->role === 'superadmin',
                 ])->download('BAIKL_RESTORAN_' . str_pad($item['id'], 5, '0', STR_PAD_LEFT) . '.pdf');
             case 'excel':
                 return Excel::download(new class implements FromCollection, WithHeadings {
@@ -1069,8 +1070,8 @@ class RestoranController extends Controller
             $data['instansi-pemeriksa'] = $request->input('instansi-lainnya');
         }
         
-        // Tambahkan user_id dari user yang sedang login
-        $data['user_id'] = Auth::id();
+        // Set user_id: 3 for guest, actual user_id for logged users
+        $data['user_id'] = Auth::check() ? Auth::id() : 3;
         $data['skor'] = (int) (100 - (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column, 0)) / ['UMUM' => 432, 'HOTEL' => 445][strtoupper($request->input('u009', 'UMUM'))]) * 100);
 
         $insert = Restoran::create($data);
@@ -1103,6 +1104,7 @@ class RestoranController extends Controller
 
     public function edit(Restoran $restoran)
     {
+
         $formPenilaian = $this->formPenilaian();
 
         switch ($restoran->u009) {
@@ -1194,7 +1196,7 @@ class RestoranController extends Controller
 
         if ($data['action'] == 'duplicate') {
             // Add auth user ID for duplicate action
-            $data['user_id'] = Auth::id();
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
 
             // For duplicate, preserve the original values if current values are empty
             if (empty($data['kelurahan']) && !empty($restoran->kelurahan)) {
@@ -1234,6 +1236,11 @@ class RestoranController extends Controller
 
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $restoran = Restoran::where('id', $id)->withTrashed()->first();
 
         if ($restoran['deleted_at']) {

@@ -23,11 +23,21 @@ class User extends Authenticatable {
         'baris3',
         'baris4',
         'baris5',
+        'baris6',
+        'baris7',
+        'baris8',
+        'baris9',
+        'baris10',
         'sizebaris1',
         'sizebaris2',
         'sizebaris3',
         'sizebaris4',
-        'sizebaris5'
+        'sizebaris5',
+        'sizebaris6',
+        'sizebaris7',
+        'sizebaris8',
+        'sizebaris9',
+        'sizebaris10'
     ];    /**
      * Relationship to kelurahan (many-to-many)
      */

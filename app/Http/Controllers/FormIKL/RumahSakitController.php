@@ -591,8 +591,21 @@ class RumahSakitController extends Controller
                 }
             }
 
-            // 5. Tambahkan user_id
-            $data['user_id'] = Auth::id();
+            // 5. Check if user is guest or authenticated
+            if (Auth::check()) {
+                $data['user_id'] = Auth::id();
+                Log::info('Authenticated user creating rumah sakit form', [
+                    'user_id' => Auth::id(),
+                    'user_email' => Auth::user()->email ?? 'N/A'
+                ]);
+            } else {
+                $data['user_id'] = 3; // Guest user ID
+                Log::info('Guest user creating rumah sakit form', [
+                    'user_id' => 3,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent()
+                ]);
+            }
 
             // 6. Hitung skor
             $totalScoreObtained = array_reduce($this->formPenilaianName(), function ($carry, $column) use ($request) {
@@ -646,6 +659,11 @@ class RumahSakitController extends Controller
      */
     public function edit(RumahSakit $rumahSakit)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.rumah-sakit.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -755,6 +773,11 @@ class RumahSakitController extends Controller
      */
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $rumahSakit = RumahSakit::where('id', $id)->withTrashed()->first();
 
         if ($rumahSakit['deleted_at']) {

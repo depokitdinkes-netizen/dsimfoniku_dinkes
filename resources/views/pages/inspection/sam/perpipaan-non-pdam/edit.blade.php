@@ -33,23 +33,6 @@
                         <option value="Other" @if($form_data['u001']!='Pasar' && $form_data['u001']!='Sekolah' && $form_data['u001']!='Tempat Pengolahan Pangan' ) selected @endif>Yang Lain</option>
                     </select>
                     <input type="text" id="u001" name="u001" placeholder="Ketikan Kategori" class="@if($form_data['u001']=='Pasar' || $form_data['u001']=='Sekolah' || $form_data['u001']=='Tempat Pengolahan Pangan') hidden @endif" value="{{ $form_data['u001'] }}" required />
-
-                    <script>
-                        $(document).ready(function() {
-                            $('#u001-select').change(function() {
-                                $('#u001').val(this.value);
-
-                                if (this.value == 'Other') {
-                                    $('#u001').removeClass('hidden');
-                                    $('#u001').prop('required', true);
-                                    $('#u001').val('');
-                                } else {
-                                    $('#u001').addClass('hidden');
-                                    $('#u001').removeAttr('required');
-                                }
-                            })
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -62,21 +45,6 @@
                         <option value="-1" @if(!$form_data['sk-pengelola']) selected @endif>Tidak Ada</option>
                     </select>
                     <input type="number" id="sk-pengelola" name="sk-pengelola" placeholder="Ketikan SK" class="@if(!$form_data['sk-pengelola']) hidden @endif" value="{{ $form_data['sk-pengelola'] }}" />
-
-                    <script>
-                        $(document).ready(function() {
-                            $('#sk-pengelola-select').change(function() {
-                                if (this.value == 1) {
-                                    $('#sk-pengelola').removeClass('hidden');
-                                    $('#sk-pengelola').prop('required', true)
-                                } else {
-                                    $('#sk-pengelola').addClass('hidden');
-                                    $('#sk-pengelola').val('');
-                                    $('#sk-pengelola').removeAttr('required');
-                                }
-                            })
-                        })
-                    </script>
                 </div>
                 @break
 
@@ -285,67 +253,14 @@
 </form>
 
 <x-modal.get-lat-long />
+
+<div data-window-var="formData" data-form-json='@json($form_data)' style="display:none;"></div>
+
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+</script>
+
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        let kecVal = "{{ $form_data['kecamatan'] }}";
-        let kelVal = "{{ $form_data['kelurahan'] }}";
-
-        let checkKec = setInterval(function() {
-            if (kecamatan.length > 0) {
-                let options = "";
-
-                kecamatan.forEach((el) => {
-                    options += `<option value="${el.name}" ${kecVal == el.name && 'selected'}>${el.name}</option>`;
-                });
-
-                $("#kec").html('<option>Pilih Kelurahan</option>');
-                $("#kec").html($("#kec").html() + options);
-
-                let kecId = kecamatan.find((el) => el.name == kecVal).id;
-
-                fetch(
-                        `https://dev4ult.github.io/api-wilayah-indonesia/api/villages/${kecId}.json`
-                    )
-                    .then((response) => response.json())
-                    .then((villages) => {
-                        let options = "";
-                        villages.forEach((el) => {
-                            options += `<option value="${el.name}" ${kelVal == el.name && 'selected'}>${el.name}</option>`;
-                        });
-
-                        $("#kel").html($("#kel").html() + options);
-                    });
-
-                clearInterval(checkKec);
-            }
-        }, 500)
-    });
-</script>
-
+<script src="{{ asset('js/inspection/sam/perpipaan-non-pdam/edit.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>
-@endsection
-
-@section('script')
-<script>
-function calculateSlhsExpireDate() {
-    const issuedDate = document.getElementById('slhs_issued_date').value;
-    if (issuedDate) {
-        const issued = new Date(issuedDate);
-        const expired = new Date(issued);
-        expired.setFullYear(expired.getFullYear() + 3);
-        
-        const expiredDateString = expired.toISOString().split('T')[0];
-        document.getElementById('slhs_expire_date').value = expiredDateString;
-    }
-}
-
-// Calculate expire date on page load if issued date exists
-document.addEventListener('DOMContentLoaded', function() {
-    const issuedDate = document.getElementById('slhs_issued_date').value;
-    if (issuedDate) {
-        calculateSlhsExpireDate();
-    }
-});
-</script>
 @endsection

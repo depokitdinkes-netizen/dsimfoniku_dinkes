@@ -53,21 +53,7 @@
     </div>
 </div>
 
-<script>
-function copyErrorDetails() {
-    const textarea = document.getElementById('errorDetails');
-    const button = document.getElementById('copyButtonText');
-    
-    textarea.select();
-    textarea.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(textarea.value);
-    
-    button.textContent = 'Copied!';
-    setTimeout(() => {
-        button.textContent = 'Copy';
-    }, 2000);
-}
-</script>
+<script src="{{ asset('js/inspection/sekolah/copy-error-details.js') }}"></script>
 @endif
 
 <form action="{{ route('sekolah.store') }}" method="POST" enctype="multipart/form-data">
@@ -224,7 +210,7 @@ function copyErrorDetails() {
             </div>
             @endforeach
 
-            <div id="catatan-lain" class="px-6 sm:px-8 pt-2">
+            <div id="section-catatan-lain" class="px-6 sm:px-8 pt-2">
                 <label for="catatan-lain" class="badge badge-lg badge-neutral badge-outline font-semibold mb-5 mt-6">Hasil IKL</label>
             </div>
 
@@ -234,7 +220,7 @@ function copyErrorDetails() {
                 </div>
             </div>
 
-            <div id="rencana-tindak-lanjut" class="px-6 sm:px-8 pt-2">
+            <div id="section-rencana-tindak-lanjut" class="px-6 sm:px-8 pt-2">
                 <label for="rencana-tindak-lanjut" class="badge badge-lg badge-neutral badge-outline font-semibold mb-5 mt-6">Rencana Tindak Lanjut</label>
             </div>
 
@@ -262,8 +248,8 @@ function copyErrorDetails() {
 
                 @endforeach
 
-                <a href="#catatan-lain" class="text-blue-500 text-sm my-2 block ml-2 underline">Hasil IKL</a>
-                <a href="#rencana-tindak-lanjut" class="text-blue-500 text-sm my-2 block ml-2 underline">Rencana Tindak Lanjut</a>
+                <a href="#section-catatan-lain" class="text-blue-500 text-sm my-2 block ml-2 underline">Hasil IKL</a>
+                <a href="#section-rencana-tindak-lanjut" class="text-blue-500 text-sm my-2 block ml-2 underline">Rencana Tindak Lanjut</a>
             </div>
             <button onclick="reminder_before_submit.showModal()" type="button" class="btn btn-primary btn-block">SUBMIT PENILAIAN</button>
 
@@ -273,166 +259,14 @@ function copyErrorDetails() {
     </div>
 </form>
 
-<script>
-// Function to show error toast
-function showErrorToast(message) {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = 'alert border-b-4 border-error fixed capitalize font-medium top-0 right-0 m-5 w-fit animate-fade-in z-20 max-w-md';
-    toast.innerHTML = `
-        <div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div class="text-left text-sm normal-case">${message}</div>
-        </div>
-        <button type="button" class="close-alert btn btn-ghost btn-square btn-sm">
-            <i class="ri-close-line"></i>
-        </button>
-    `;
-    
-    // Add to body
-    document.body.appendChild(toast);
-    
-    // Add click handler for close button
-    const closeBtn = toast.querySelector('.close-alert');
-    closeBtn.addEventListener('click', function() {
-        toast.remove();
-    });
-    
-    // Auto remove after 8 seconds (longer for detailed message)
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.remove();
-        }
-    }, 8000);
-}
 
-// Form validation before submit
-document.querySelector('form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const requiredFields = [
-        { name: 'subjek', label: 'Nama Sekolah' },
-        { name: 'jenis_sekolah', label: 'Jenis Sekolah' },
-        { name: 'alamat', label: 'Alamat' },
-        { name: 'kecamatan', label: 'Kecamatan' },
-        { name: 'kelurahan', label: 'Kelurahan' },
-        { name: 'pengelola', label: 'Kepala Sekolah/NIP' },
-        { name: 'kontak', label: 'Kontak yang Dapat Dihubungi' },
-        { name: 'u004', label: 'Jumlah Siswa' },
-        { name: 'u005', label: 'Jumlah Guru' },
-        { name: 'u006', label: 'Nomor Pokok Sekolah Nasional' },
-        { name: 'nama-pemeriksa', label: 'Nama Pemeriksa' },
-        { name: 'instansi-pemeriksa', label: 'Instansi Pemeriksa' },
-        { name: 'tanggal-penilaian', label: 'Tanggal Penilaian' },
-        { name: 'koordinat', label: 'Titik GPS' },
-        { name: 'status-operasi', label: 'Status Operasi' },
-        { name: 'catatan-lain', label: 'Hasil IKL' },
-        { name: 'rencana-tindak-lanjut', label: 'Rencana Tindak Lanjut' }
-    ];
-
-    // Hasil pengukuran fields
-    const hasilPengukuranFields = [
-        { name: 'hpp001', label: 'Hasil Pengukuran Pencahayaan di Ruang Kelas' },
-        { name: 'hpp002', label: 'Hasil Pengukuran Pencahayaan di Ruang Perpustakaan' },
-        { name: 'hpp003', label: 'Hasil Pengukuran Pencahayaan di Ruang Laboratorium' },
-        { name: 'hpp004', label: 'Hasil Pengukuran Kelembaban' },
-        { name: 'hpp005', label: 'Hasil Pengukuran Kebisingan' },
-        { name: 'hpp006', label: 'Hasil Pengukuran PM 2,5' },
-        { name: 'hpp007', label: 'Hasil Pengukuran PM10' }
-    ];
-
-    let hasErrors = false;
-    let errorMessages = [];
-    
-    // Clear previous error states
-    document.querySelectorAll('.input-error, .select-error, .textarea-error').forEach(el => {
-        el.classList.remove('input-error', 'select-error', 'textarea-error');
-    });
-    document.querySelectorAll('.text-error').forEach(el => el.remove());
-
-    // Validate required fields
-    [...requiredFields, ...hasilPengukuranFields].forEach(field => {
-        const element = document.getElementById(field.name) || document.querySelector(`[name="${field.name}"]`);
-        if (element) {
-            const value = element.value.trim();
-            if (!value || value === '' || value === 'Pilih Kecamatan' || value === 'Pilih Kelurahan' || value === 'Pilih Jenis Sekolah' || value === 'Pilih Status') {
-                hasErrors = true;
-                errorMessages.push(field.label);
-                
-                // Add error class based on element type
-                if (element.tagName === 'SELECT') {
-                    element.classList.add('select-error');
-                } else if (element.tagName === 'TEXTAREA') {
-                    element.classList.add('textarea-error');
-                } else {
-                    element.classList.add('input-error');
-                }
-                
-                // Add error message
-                if (!element.parentNode.querySelector('.text-error')) {
-                    const errorSpan = document.createElement('span');
-                    errorSpan.className = 'text-error text-xs';
-                    errorSpan.textContent = `${field.label} harus diisi`;
-                    element.parentNode.appendChild(errorSpan);
-                }
-            }
-        }
-    });
-
-    // Validate koordinat format (lat, long)
-    const koordinat = document.getElementById('koordinat');
-    if (koordinat && koordinat.value) {
-        const koordinatPattern = /^-?\d+\.?\d*,\s*-?\d+\.?\d*$/;
-        if (!koordinatPattern.test(koordinat.value.trim())) {
-            hasErrors = true;
-            errorMessages.push('Format Koordinat tidak valid');
-            koordinat.classList.add('input-error');
-            if (!koordinat.parentNode.querySelector('.text-error')) {
-                const errorSpan = document.createElement('span');
-                errorSpan.className = 'text-error text-xs';
-                errorSpan.textContent = 'Format koordinat harus: latitude, longitude (contoh: -6.324667, 106.891268)';
-                koordinat.parentNode.appendChild(errorSpan);
-            }
-        }
-    }
-
-    if (hasErrors) {
-        // Scroll to first error
-        const firstError = document.querySelector('.input-error, .select-error, .textarea-error');
-        if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        
-        // Create detailed error message
-        let errorMessage = 'Field yang belum diisi:\n';
-        errorMessages.forEach((field, index) => {
-            errorMessage += `${index + 1}. ${field}\n`;
-        });
-        
-        // Show toast with specific errors
-        showErrorToast(errorMessage.replace(/\n/g, '<br>'));
-        return false;
-    }
-    
-    // Show loading state
-    const submitBtn = document.querySelector('button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Menyimpan...';
-    }
-    
-    // Submit the form
-    this.submit();
-});
-
-// Auto-calculate on page load if issued date already filled
-document.addEventListener('DOMContentLoaded', function() {});
-</script>
 
 <x-modal.get-lat-long />
 
+<script>
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+</script>
+<script src="{{ asset('js/inspection/sekolah/create.js') }}"></script>
 <script src="{{ asset('js/fallbackData.js') }}"></script>
 <script src="{{ asset('js/getDistrictsAndVillages.js') }}"></script>
 <script src="{{ asset('js/autosave-form.js') }}"></script>

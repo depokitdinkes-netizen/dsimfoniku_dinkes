@@ -295,10 +295,11 @@ class AkomodasiController extends Controller
     public function store(Request $request)
     {
         try {
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                Log::warning('Unauthenticated user attempted to store Akomodasi data');
-                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+            // Check if user is authenticated or guest
+            $isGuest = !Auth::check();
+            
+            if ($isGuest) {
+                Log::info('Guest user attempting to store Akomodasi data');
             }
 
             // Validasi input komprehensif
@@ -350,15 +351,16 @@ class AkomodasiController extends Controller
             ]);
 
             Log::info('Akomodasi form submission started', [
-                'user_id' => Auth::id(),
+                'user_id' => $isGuest ? 3 : Auth::id(),
                 'subjek' => $request->input('subjek'),
-                'pengelola' => $request->input('pengelola')
+                'pengelola' => $request->input('pengelola'),
+                'is_guest' => $isGuest
             ]);
 
             $data = $request->all();
             
-            // Tambahkan user_id dari user yang sedang login
-            $data['user_id'] = Auth::id();
+            // Set user_id: 0 untuk guest, Auth::id() untuk user yang login
+            $data['user_id'] = $isGuest ? 3 : Auth::id();
             
             // Handle instansi-lainnya logic
             if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
@@ -377,24 +379,28 @@ class AkomodasiController extends Controller
 
             if (!$insert) {
                 Log::error('Failed to create Akomodasi record', [
-                    'user_id' => Auth::id(),
-                    'data' => $validatedData
-                ]);
-                return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Akomodasi gagal dibuat, silahkan coba lagi.');
-            }
-
-            Log::info('Akomodasi record created successfully', [
-                'user_id' => Auth::id(),
-                'record_id' => $insert->id,
-                'subjek' => $insert->subjek
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'data' => $validatedData
             ]);
+            return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Akomodasi gagal dibuat, silahkan coba lagi.');
+        }
+
+        Log::info('Akomodasi record created successfully', [
+            'user_id' => $isGuest ? 3 : Auth::id(),
+            'is_guest' => $isGuest,
+            'record_id' => $insert->id,
+            'subjek' => $insert->subjek
+        ]);
 
             return redirect(route('akomodasi.show', ['akomodasi' => $insert->id]))
                 ->with('success', 'Penilaian/inspeksi Akomodasi berhasil dibuat.');
 
         } catch (ValidationException $e) {
+            $isGuest = !Auth::check();
             Log::warning('Akomodasi form validation failed', [
-                'user_id' => Auth::id(),
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
                 'errors' => $e->errors(),
                 'input' => $request->except(['_token'])
             ]);
@@ -404,8 +410,10 @@ class AkomodasiController extends Controller
                 ->withInput()
                 ->with('error', 'Terdapat kesalahan dalam pengisian form. Silahkan periksa kembali.');
         } catch (\Exception $e) {
+            $isGuest = !Auth::check();
             Log::error('Unexpected error during Akomodasi form submission', [
-                'user_id' => Auth::id(),
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'input' => $request->except(['_token'])
@@ -446,12 +454,6 @@ class AkomodasiController extends Controller
     public function update(Request $request, Akomodasi $akomodasi)
     {
         try {
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                Log::warning('Unauthenticated user attempted to update Akomodasi data', ['akomodasi_id' => $akomodasi->id]);
-                return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
-            }
-
             // Validasi input komprehensif
             $validatedData = $request->validate([
                 'subjek' => 'required|string|max:255',
@@ -622,6 +624,15 @@ class AkomodasiController extends Controller
 
     public function destroy(String $id)
     {
+        // Restrict guest account (user_id = 3) from deleting
+        if (!Auth::check()) {
+            Log::warning('Guest user attempted to delete Akomodasi data', [
+                'akomodasi_id' => $id,
+                'user_id' => 3
+            ]);
+            return redirect()->route('login')->with('error', 'Anda harus login untuk menghapus data inspeksi.');
+        }
+
         $akomodasi = Akomodasi::where('id', $id)->withTrashed()->first();
 
         if ($akomodasi['deleted_at']) {

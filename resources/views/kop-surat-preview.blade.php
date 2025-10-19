@@ -3,52 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Preview Kop Surat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .kop-container {
-            border: 2px solid #ddd;
-            padding: 20px;
-            margin-bottom: 30px;
-            background-color: #f9f9f9;
-        }
-        .kop-header {
-            text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .logo-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin-right: 20px;
-        }
-        .text-section {
-            flex: 1;
-            text-align: center;
-        }
-        .sample-content {
-            padding: 20px;
-            border: 1px dashed #ccc;
-            background-color: #fff;
-        }
-        .preview-note {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px;
-            margin: 20px 0;
-            font-style: italic;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/kop-surat-preview.css') }}">
 </head>
 <body>
     <div class="preview-note">
@@ -63,35 +18,17 @@
                     <img src="{{ asset('logo/kota-depok-logo.png') }}" alt="Logo Depok" style="height: 80px;">
                 </td>
                 <td style="width: 80%; vertical-align: middle; text-align: center; padding-left: 20px;">
-                    @if($kopData['baris1'])
-                    <div style="font-size: {{ $kopData['sizebaris1'] }}; font-family: Arial, sans-serif; margin-bottom: 5px;">
-                        {{ $kopData['baris1'] }}
-                    </div>
-                    @endif
-                    
-                    @if($kopData['baris2'])
-                    <div style="font-size: {{ $kopData['sizebaris2'] }}; font-family: Arial, sans-serif; font-weight: bold; margin-bottom: 5px;">
-                        {{ $kopData['baris2'] }}
-                    </div>
-                    @endif
-                    
-                    @if($kopData['baris3'])
-                    <div style="font-size: {{ $kopData['sizebaris3'] }}; font-family: Arial, sans-serif; font-weight: bold; margin-bottom: 5px;">
-                        {{ $kopData['baris3'] }}
-                    </div>
-                    @endif
-                    
-                    @if($kopData['baris4'])
-                    <div style="font-size: {{ $kopData['sizebaris4'] }}; font-family: Arial, sans-serif; margin-bottom: 5px;">
-                        {{ $kopData['baris4'] }}
-                    </div>
-                    @endif
-                    
-                    @if($kopData['baris5'])
-                    <div style="font-size: {{ $kopData['sizebaris5'] }}; font-family: Arial, sans-serif;">
-                        {{ $kopData['baris5'] }}
-                    </div>
-                    @endif
+                    @for($i = 1; $i <= 10; $i++)
+                        @if(!empty($kopData["baris{$i}"]))
+                            @php
+                                $fontWeight = in_array($i, [2, 3]) ? 'font-weight: bold;' : '';
+                                $marginBottom = $i < 10 && !empty($kopData["baris" . ($i + 1)]) ? 'margin-bottom: 5px;' : '';
+                            @endphp
+                            <div style="font-size: {{ $kopData["sizebaris{$i}"] ?? '13px' }}; font-family: Arial, sans-serif; {{ $fontWeight }} {{ $marginBottom }}">
+                                {{ $kopData["baris{$i}"] }}
+                            </div>
+                        @endif
+                    @endfor
                 </td>
             </tr>
         </table>

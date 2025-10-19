@@ -3,11 +3,31 @@ let isInitialized = false;
 const MAX_RETRIES = 2;
 let retryCount = 0;
 
-$(document).ready(function () {
+$(document).ready(async function () {
     // Prevent multiple initialization
     if (isInitialized) {
         return;
     }
+    
+    // Wait for user data to be loaded first (if function exists)
+    if (typeof window.waitForUserData === 'function') {
+        console.log('Waiting for user data to load...');
+        try {
+            await window.waitForUserData();
+            console.log('User data loaded successfully');
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    }
+    
+    // Check if user should have restricted access (for ADMIN users)
+    if (typeof window.shouldRestrictKelurahan === 'function' && window.shouldRestrictKelurahan()) {
+        console.log('User is ADMIN - skipping getDistrictsAndVillages.js initialization');
+        isInitialized = true;
+        return;
+    }
+    
+    console.log('User is SUPERADMIN or GUEST - proceeding with normal initialization');
     isInitialized = true;
 
     // Load fallback data if available

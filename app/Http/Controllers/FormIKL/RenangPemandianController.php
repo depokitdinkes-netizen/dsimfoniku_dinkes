@@ -340,15 +340,15 @@ class RenangPemandianController extends Controller
             ]);
 
             Log::info('Arena Renang/Pemandian Alam form submission started', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'subjek' => $request->input('subjek'),
                 'pengelola' => $request->input('pengelola')
             ]);
 
             $data = $request->all();
             
-            // Tambahkan user_id dari user yang sedang login
-            $data['user_id'] = Auth::id();
+            // Set user_id: 3 for guest, actual user_id for logged users
+            $data['user_id'] = Auth::check() ? Auth::id() : 3;
             
             // Handle instansi-lainnya logic
             if ($request->has('instansi-lainnya') && !empty($request->input('instansi-lainnya'))) {
@@ -361,14 +361,14 @@ class RenangPemandianController extends Controller
 
             if (!$insert) {
                 Log::error('Failed to create Arena Renang/Pemandian Alam record', [
-                    'user_id' => Auth::id(),
+                    'user_id' => Auth::check() ? Auth::id() : 3,
                     'data' => $validatedData
                 ]);
                 return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi Arena Renang/Pemandian Alam gagal dibuat, silahkan coba lagi.');
             }
 
             Log::info('Arena Renang/Pemandian Alam record created successfully', [
-                'user_id' => Auth::id(),
+                'user_id' => Auth::check() ? Auth::id() : 3,
                 'record_id' => $insert->id,
                 'subjek' => $insert->subjek
             ]);
@@ -420,6 +420,11 @@ class RenangPemandianController extends Controller
 
     public function edit(RenangPemandian $renangPemandian)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.renang-pemandian.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -582,6 +587,11 @@ class RenangPemandianController extends Controller
 
     public function destroy(String $id)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $renangPemandian = RenangPemandian::where('id', $id)->withTrashed()->first();
 
         if ($renangPemandian['deleted_at']) {

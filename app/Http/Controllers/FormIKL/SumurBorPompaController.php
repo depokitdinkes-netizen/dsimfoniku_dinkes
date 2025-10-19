@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class SumurBorPompaController extends Controller {
     protected function select($label, $name, $tidak_sesuai = 1) {
@@ -205,42 +207,127 @@ class SumurBorPompaController extends Controller {
     }
 
     public function store(Request $request) {
-        
-        // Validasi input
-        $request->validate([
-            'dokumen_slhs' => 'nullable|url|max:2048', // Validasi sebagai URL
-            'slhs_issued_date' => 'nullable|date',
-            'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
-        ]);
+        try {
+            // Check if user is authenticated or guest
+            $isGuest = !Auth::check();
+            
+            if ($isGuest) {
+                Log::info('Guest user attempting to store Sumur Bor Pompa data');
+            }
 
-        $data = $request->all();
-        
-        // Handle instansi-lainnya logic
-        if (isset($data['instansi-pemeriksa']) && $data['instansi-pemeriksa'] === 'Lainnya' && isset($data['instansi-lainnya'])) {
-            $data['instansi-pemeriksa'] = $data['instansi-lainnya'];
-            unset($data['instansi-lainnya']);
+            // Validasi input komprehensif
+            $validatedData = $request->validate([
+                'subjek' => 'required|string|max:255',
+                'pengelola' => 'required|string|max:255',
+                'alamat' => 'required|string|max:500',
+                'kecamatan' => 'required|string|max:255',
+                'kelurahan' => 'required|string|max:255',
+                'koordinat' => 'required|string|max:255',
+                'dokumen_slhs' => 'nullable|url|max:2048',
+                'slhs_issued_date' => 'nullable|date',
+                'slhs_expire_date' => 'nullable|date|after_or_equal:slhs_issued_date',
+                'status-operasi' => 'nullable|string',
+                'kontak' => 'nullable|numeric',
+                'nama-pemeriksa' => 'nullable|string|max:255',
+                'instansi-pemeriksa' => 'nullable|string|max:255',
+                'tanggal-penilaian' => 'nullable|date',
+                'catatan-lain' => 'nullable|string|max:1000',
+                'rencana-tindak-lanjut' => 'nullable|string|max:1000',
+                'tujuan-ikl' => 'nullable|string|max:255',
+            ], [
+                'subjek.required' => 'Nama sumur bor dengan pompa wajib diisi.',
+                'subjek.max' => 'Nama sumur bor dengan pompa maksimal 255 karakter.',
+                'pengelola.required' => 'Nama pengelola wajib diisi.',
+                'pengelola.max' => 'Nama pengelola maksimal 255 karakter.',
+                'alamat.required' => 'Alamat wajib diisi.',
+                'alamat.max' => 'Alamat maksimal 500 karakter.',
+                'kecamatan.required' => 'Kecamatan wajib diisi.',
+                'kelurahan.required' => 'Kelurahan wajib diisi.',
+                'koordinat.required' => 'Koordinat wajib diisi.',
+                'dokumen_slhs.url' => 'Link dokumen SLHS harus berupa URL yang valid.',
+                'dokumen_slhs.max' => 'Link dokumen SLHS maksimal 2048 karakter.',
+                'slhs_issued_date.date' => 'Format tanggal terbit SLHS tidak valid.',
+                'slhs_expire_date.date' => 'Format tanggal berakhir SLHS tidak valid.',
+                'slhs_expire_date.after_or_equal' => 'Tanggal berakhir SLHS harus setelah tanggal terbit.',
+            ]);
+
+            Log::info('Sumur Bor Pompa form submission started', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'subjek' => $request->input('subjek'),
+                'pengelola' => $request->input('pengelola'),
+                'is_guest' => $isGuest
+            ]);
+
+            $data = $request->all();
+            
+            // Set user_id: 3 untuk guest, Auth::id() untuk user yang login
+            $data['user_id'] = $isGuest ? 3 : Auth::id();
+            
+            // Handle instansi-lainnya logic
+            if (isset($data['instansi-pemeriksa']) && $data['instansi-pemeriksa'] === 'Lainnya' && isset($data['instansi-lainnya'])) {
+                $data['instansi-pemeriksa'] = $data['instansi-lainnya'];
+                unset($data['instansi-lainnya']);
+            }
+            
+            // Auto-calculate SLHS expire date if issued date is provided
+            if (isset($data['slhs_issued_date']) && $data['slhs_issued_date']) {
+                $issuedDate = Carbon::parse($data['slhs_issued_date']);
+                $data['slhs_expire_date'] = $issuedDate->addYears(3)->format('Y-m-d');
+            }
+
+            foreach ($this->formPenilaianName() as $column) {
+                $data[$column] = $request->input($column, '0');
+            }
+
+            $data['skor'] = (int) (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column)));
+
+            $insert = SumurBorPompa::create($data);
+
+            if (!$insert) {
+                Log::error('Failed to create Sumur Bor Pompa record', [
+                    'user_id' => $isGuest ? 3 : Auth::id(),
+                    'is_guest' => $isGuest,
+                    'data' => $validatedData
+                ]);
+                return redirect(route('inspection'))->with('error', 'Penilaian/inspeksi SAM Sumur Bor dengan Pompa gagal dibuat, silahkan coba lagi.');
+            }
+
+            Log::info('Sumur Bor Pompa record created successfully', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'record_id' => $insert->id,
+                'subjek' => $insert->subjek
+            ]);
+
+            return redirect(route('sumur-bor-pompa.show', ['sumur_bor_pompa' => $insert->id]))->with('success', 'Penilaian/inspeksi SAM Sumur Bor dengan Pompa berhasil dibuat.');
+
+        } catch (ValidationException $e) {
+            $isGuest = !Auth::check();
+            Log::warning('Sumur Bor Pompa form validation failed', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'errors' => $e->errors(),
+                'input' => $request->except(['_token'])
+            ]);
+            
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Terdapat kesalahan dalam pengisian form. Silahkan periksa kembali.');
+        } catch (\Exception $e) {
+            $isGuest = !Auth::check();
+            Log::error('Unexpected error during Sumur Bor Pompa form submission', [
+                'user_id' => $isGuest ? 3 : Auth::id(),
+                'is_guest' => $isGuest,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->except(['_token'])
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan sistem. Silahkan coba lagi atau hubungi administrator.');
         }
-        
-        // Tambahkan user_id dari user yang sedang login
-        $data['user_id'] = Auth::id();
-        
-        // Auto-calculate SLHS expire date if issued date is provided
-        if (isset($data['slhs_issued_date']) && $data['slhs_issued_date']) {
-            $issuedDate = Carbon::parse($data['slhs_issued_date']);
-            $data['slhs_expire_date'] = $issuedDate->addYears(3)->format('Y-m-d');
-        }
-
-        foreach ($this->formPenilaianName() as $column) {
-            $data[$column] = $request->input($column, '0');
-        }
-
-        $data['skor'] = (int) (array_reduce($this->formPenilaianName(), fn($carry, $column) => $carry + $request->input($column)));
-
-        $insert = SumurBorPompa::create($data);        if (!$insert) {
-            return redirect(route('inspection'))->with('error', 'penilaian / inspeksi SAM Sumur Gali dengan Pompa gagal dibuat, silahkan coba lagi');
-        }
-
-        return redirect(route('sumur-bor-pompa.show', ['sumur_bor_pompa' => $insert->id]))->with('success', 'penilaian / inspeksi SAM Sumur Gali dengan Pompa berhasil dibuat');
     }
 
     public function show(SumurBorPompa $sumurBorPompa) {
@@ -262,6 +349,11 @@ class SumurBorPompaController extends Controller {
     }
 
     public function edit(SumurBorPompa $sumurBorPompa) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         return view('pages.inspection.sam.sumur-bor-pompa.edit', [
             'page_name' => 'history',
             'informasi_umum' => $this->informasiUmum(),
@@ -339,6 +431,11 @@ class SumurBorPompaController extends Controller {
     }
 
     public function destroy(String $id) {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
+        }
+
         $sumurBorPompa = SumurBorPompa::where('id', $id)->withTrashed()->first();
 
         if ($sumurBorPompa['deleted_at']) {

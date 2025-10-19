@@ -16,6 +16,7 @@
             @endif
         </button>
         <form method="GET" class="join">
+            @csrf
             <!-- Preserve all current query parameters except s -->
             @foreach (request()->query() as $key => $value)
                 @if ($key !== 's')
@@ -313,14 +314,35 @@
                     </td>
                     <td class="flex gap-1.5">
                         @auth
-                        @if (Auth::user()->role != "USER")
+                        @php
+                            $user = Auth::user();
+                            $canEdit = false;
+                            $canDelete = false;
+                            $canExportPdf = false;
+                            
+                            if ($user->role == "SUPERADMIN") {
+                                // Superadmin bisa edit/delete/export PDF semua form termasuk guest
+                                $canEdit = true;
+                                $canDelete = true;
+                                $canExportPdf = true;
+                            } elseif ($user->role == "ADMIN") {
+                                // Admin hanya bisa edit/delete/export PDF form miliknya sendiri
+                                // Tapi bisa melihat semua history dan export raw excel
+                                $canEdit = isset($inspection['user_id']) && $inspection['user_id'] == $user->id;
+                                $canDelete = isset($inspection['user_id']) && $inspection['user_id'] == $user->id;
+                                $canExportPdf = isset($inspection['user_id']) && $inspection['user_id'] == $user->id;
+                            }
+                        @endphp
+                        
+                        @if ($canEdit)
                         <div class="tooltip tooltip-warning" data-tip="Ubah Informasi / Penilaian">
                             <a href="{{ $inspection['sud'] . '/edit' }}" class="btn btn-warning btn-square">
                                 <i class="ri-edit-fill"></i>
                             </a>
                         </div>
                         @endif
-                        @if (Auth::user()->role == "SUPERADMIN")
+                        
+                        @if ($canDelete)
                         <form id="deleteForm{{ $index }}" action="{{ url($inspection['sud']) }}" method="POST">
                             @csrf
                             @method('DELETE')
@@ -374,6 +396,7 @@
             @endif
         </div>
         <form action="{{ route('history') }}" class="join">
+            @csrf
             <!-- Preserve all current query parameters except dpp -->
             @foreach (request()->query() as $key => $value)
                 @if ($key !== 'dpp')
@@ -401,16 +424,6 @@
 <x-modal.export-history />
 <x-modal.confirmation />
 
-<script>
-    function showDeleteConfirmation(inspectionName, formIndex) {
-        showDeleteConfirmationModal(
-            'Hapus Hasil Inspeksi',
-            `Apakah Anda yakin ingin menghapus hasil inspeksi "${inspectionName}"? Data yang dihapus tidak dapat dikembalikan.`,
-            function() {
-                document.getElementById('deleteForm' + formIndex).submit();
-            }
-        );
-    }
-</script>
+<script src="{{ asset('js/history/index.js') }}"></script>
 
 @endsection
