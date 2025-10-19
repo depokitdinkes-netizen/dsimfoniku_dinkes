@@ -22,8 +22,8 @@ async function fetchUserKelurahan() {
         if (result.success) {
             userKelurahanData = result.data;
             isRestrictedUser = !result.data.is_superadmin;
-            console.log('User Kelurahan Data:', userKelurahanData);
-            console.log('Is Restricted User (ADMIN):', isRestrictedUser);
+            // console.log('User Kelurahan Data:', userKelurahanData);
+            // console.log('Is Restricted User (ADMIN):', isRestrictedUser);
         } else {
             console.error('Failed to load user kelurahan:', result.message);
             isRestrictedUser = false;
@@ -39,7 +39,7 @@ $(document).ready(function() {
     let kecVal = window.rumahSakitEditData?.kecamatan || "";
     let kelVal = window.rumahSakitEditData?.kelurahan || "";
     
-    console.log('Edit form initialized with:', { kecVal, kelVal });
+    // console.log('Edit form initialized with:', { kecVal, kelVal });
 
     // Fetch user data first
     fetchUserKelurahan().then(() => {
@@ -156,9 +156,9 @@ function loadRestrictedData(kecVal, kelVal) {
         return;
     }
 
-    console.log('Loading restricted data for ADMIN');
-    console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
-    console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
+    // console.log('Loading restricted data for ADMIN');
+    // console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
+    // console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
     
     // Clear existing options
     kecamatanSelect.innerHTML = '';
@@ -182,7 +182,7 @@ function loadRestrictedData(kecVal, kelVal) {
             kecamatanSelect.appendChild(option);
         });
         
-        console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
+        // console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
     }
 
     // Load kelurahan for selected kecamatan
@@ -225,7 +225,7 @@ function updateRestrictedKelurahanDropdown(selectedKecamatan, kelurahanSelect, p
         });
 
         kelurahanSelect.disabled = false;
-        console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
+        // console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
         
         // Show info message for ADMIN
         if ($('#kelurahan-restriction-info').length === 0) {
@@ -376,16 +376,16 @@ $('input[name="f1002"]:checked').each(function() {
 // Conditional logic for f1005, f1006, f1007
 function toggleF1006F1007() {
     const f1005Value = $('input[name="f1005"]:checked').val();
-    console.log('f1005 dipilih:', f1005Value);
+    // console.log('f1005 dipilih:', f1005Value);
     const f1006Container = $('input[name="f1006"]').closest('.px-3');
     const f1007Container = $('input[name="f1007"]').closest('.px-3');
     
     if (f1005Value === 'Ya') { // Ya
-        console.log('Menampilkan f1006 dan f1007');
+        // console.log('Menampilkan f1006 dan f1007');
         f1006Container.show();
         f1007Container.show();
     } else { // Tidak
-        console.log('Menyembunyikan f1006 dan f1007');
+        // console.log('Menyembunyikan f1006 dan f1007');
         f1006Container.hide();
         f1007Container.hide();
         // Reset values when hidden

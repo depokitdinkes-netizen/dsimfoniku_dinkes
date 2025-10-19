@@ -217,7 +217,7 @@ function updateKelurahanOptionsEdit() {
         }
     });
     
-    console.log('Selected kelurahan in edit:', selectedKelurahan);
+    // console.log('Selected kelurahan in edit:', selectedKelurahan);
     
     // Update all kelurahan selects
     kelurahanSelects.forEach(select => {
@@ -278,7 +278,7 @@ function updateKelurahanOptionsEditAdmin() {
         }
     });
     
-    console.log('Selected kelurahan in edit admin:', selectedKelurahan);
+    // console.log('Selected kelurahan in edit admin:', selectedKelurahan);
     
     // Update all kelurahan selects
     kelurahanSelects.forEach(select => {
@@ -328,15 +328,15 @@ function checkKelurahanDuplicatesEditAdmin() {
 
 // Function to find and set multiple kelurahan
 function findAndSetMultipleKelurahan(userKelurahan) {
-    console.log('findAndSetMultipleKelurahan called with:', userKelurahan);
+    // console.log('findAndSetMultipleKelurahan called with:', userKelurahan);
     
     if (!userKelurahan || userKelurahan.length === 0) {
-        console.log('No userKelurahan data');
+        // console.log('No userKelurahan data');
         return;
     }
     
     const kecamatanValue = userKelurahan[0].kecamatan;
-    console.log('Setting kecamatan to:', kecamatanValue);
+    // console.log('Setting kecamatan to:', kecamatanValue);
     
     // Set hidden input untuk kecamatan
     const hiddenInput = document.getElementById('selected-kecamatan');
@@ -356,19 +356,19 @@ function findAndSetMultipleKelurahan(userKelurahan) {
         });
         
         if (found) {
-            console.log('Kecamatan found, triggering change event');
+            // console.log('Kecamatan found, triggering change event');
             // Trigger change dengan jQuery untuk memastikan event handler terpanggil
             $(kecSelect).trigger('change');
             
             // Setelah kelurahan dimuat, set semua kelurahan yang dipilih
             setTimeout(() => {
                 const kelurahanSelects = document.querySelectorAll('.kelurahan-select');
-                console.log('Found kelurahan selects:', kelurahanSelects.length);
+                // console.log('Found kelurahan selects:', kelurahanSelects.length);
                 
                 kelurahanSelects.forEach((select, index) => {
                     if (userKelurahan[index]) {
                         const kelurahanValue = userKelurahan[index].kelurahan;
-                        console.log(`Setting kelurahan ${index} to:`, kelurahanValue);
+                        // console.log(`Setting kelurahan ${index} to:`, kelurahanValue);
                         
                         let kelurahanFound = false;
                         Array.from(select.options).forEach(option => {
@@ -379,32 +379,32 @@ function findAndSetMultipleKelurahan(userKelurahan) {
                         });
                         
                         if (kelurahanFound) {
-                            console.log(`Kelurahan ${index} set successfully`);
+                            // console.log(`Kelurahan ${index} set successfully`);
                         } else {
-                            console.log(`Kelurahan ${index} not found in options`);
+                            // console.log(`Kelurahan ${index} not found in options`);
                         }
                     }
                 });
             }, 2500);
         } else {
-            console.log('Kecamatan not found in options');
+            // console.log('Kecamatan not found in options');
         }
     } else {
-        console.log('Kecamatan select element not found');
+        // console.log('Kecamatan select element not found');
     }
 }
 
 // Function to find and set multiple kelurahan (Admin edit sendiri)
 function findAndSetMultipleKelurahanAdmin(userKelurahan) {
-    console.log('findAndSetMultipleKelurahanAdmin called with:', userKelurahan);
+    // console.log('findAndSetMultipleKelurahanAdmin called with:', userKelurahan);
     
     if (!userKelurahan || userKelurahan.length === 0) {
-        console.log('No userKelurahan data for admin');
+        // console.log('No userKelurahan data for admin');
         return;
     }
     
     const kecamatanValue = userKelurahan[0].kecamatan;
-    console.log('Setting kecamatan admin to:', kecamatanValue);
+    // console.log('Setting kecamatan admin to:', kecamatanValue);
     
     // Set hidden input untuk kecamatan
     const hiddenInput = document.getElementById('selected-kecamatan-admin');
@@ -424,19 +424,19 @@ function findAndSetMultipleKelurahanAdmin(userKelurahan) {
         });
         
         if (found) {
-            console.log('Kecamatan admin found, triggering change event');
+            // console.log('Kecamatan admin found, triggering change event');
             // Trigger change dengan jQuery untuk memastikan event handler terpanggil
             $(kecSelect).trigger('change');
             
             // Setelah kelurahan dimuat, set semua kelurahan yang dipilih
             setTimeout(() => {
                 const kelurahanSelects = document.querySelectorAll('.kelurahan-select-admin');
-                console.log('Found kelurahan admin selects:', kelurahanSelects.length);
+                // console.log('Found kelurahan admin selects:', kelurahanSelects.length);
                 
                 kelurahanSelects.forEach((select, index) => {
                     if (userKelurahan[index]) {
                         const kelurahanValue = userKelurahan[index].kelurahan;
-                        console.log(`Setting kelurahan admin ${index} to:`, kelurahanValue);
+                        // console.log(`Setting kelurahan admin ${index} to:`, kelurahanValue);
                         
                         let kelurahanFound = false;
                         Array.from(select.options).forEach(option => {
@@ -447,18 +447,18 @@ function findAndSetMultipleKelurahanAdmin(userKelurahan) {
                         });
                         
                         if (kelurahanFound) {
-                            console.log(`Kelurahan admin ${index} set successfully`);
+                            // console.log(`Kelurahan admin ${index} set successfully`);
                         } else {
-                            console.log(`Kelurahan admin ${index} not found in options`);
+                            // console.log(`Kelurahan admin ${index} not found in options`);
                         }
                     }
                 });
             }, 2500);
         } else {
-            console.log('Kecamatan admin not found in options');
+            // console.log('Kecamatan admin not found in options');
         }
     } else {
-        console.log('Kecamatan admin select element not found');
+        // console.log('Kecamatan admin select element not found');
     }
 }
 
@@ -645,11 +645,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 kopSuratPreviewRoute: kopSuratPreviewRoute
             };
             
-            console.log('User data loaded:', {
-                userKelurahan: userKelurahan,
-                user: user,
-                authUserRole: authUserRole
-            });
+            // console.log('User data loaded:', {
+            //     userKelurahan: userKelurahan,
+            //     user: user,
+            //     authUserRole: authUserRole
+            // });
         } catch (error) {
             console.error('Error parsing user data:', error);
         }
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize existing user data if available
         if (user && user.kelurahan && user.kecamatan) {
-            console.log('Loading single kelurahan data:', user);
+            // console.log('Loading single kelurahan data:', user);
             setTimeout(() => {
                 if (authUserRole === "SUPERADMIN") {
                     findAndSetKecamatanByKelurahan(user.kelurahan, user.kecamatan);
@@ -689,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 2000);
         } else if (userKelurahan && userKelurahan.length > 0) {
-            console.log('Loading multiple kelurahan data:', userKelurahan);
+            // console.log('Loading multiple kelurahan data:', userKelurahan);
             setTimeout(() => {
                 if (authUserRole === "SUPERADMIN") {
                     findAndSetMultipleKelurahan(userKelurahan);
@@ -698,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 2000);
         } else {
-            console.log('No kelurahan data to load');
+            // console.log('No kelurahan data to load');
         }
     }, 1000);
     

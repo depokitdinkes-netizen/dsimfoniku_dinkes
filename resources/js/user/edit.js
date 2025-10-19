@@ -201,7 +201,7 @@ function updateKelurahanOptionsEditAdmin() {
         }
     });
     
-    console.log('Selected kelurahan in edit admin:', selectedKelurahan);
+    // console.log('Selected kelurahan in edit admin:', selectedKelurahan);
     
     // Update all kelurahan selects
     kelurahanSelects.forEach(select => {

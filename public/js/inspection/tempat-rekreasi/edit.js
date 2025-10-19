@@ -109,7 +109,7 @@ $(document).ready(function() {
                     $("#kel").html(options);
                     $("#kel").prop('disabled', false);
                     
-                    console.log('Kelurahan loaded successfully:', villages.length, 'items');
+                    // console.log('Kelurahan loaded successfully:', villages.length, 'items');
                 })
                 .catch((error) => {
                     console.error('Error loading villages:', error);
@@ -122,16 +122,16 @@ $(document).ready(function() {
         let checkKec = setInterval(function() {
             if (populateKecamatan()) {
                 clearInterval(checkKec);
-                console.log('Kecamatan data loaded and populated');
+                // console.log('Kecamatan data loaded and populated');
             } else {
-                console.log('Waiting for kecamatan data...');
+                // console.log('Waiting for kecamatan data...');
             }
         }, 500);
         
         // Handle kecamatan change event
         $("#kec").on('change', function() {
             let selectedValue = $(this).val();
-            console.log('Kecamatan changed to:', selectedValue);
+            // console.log('Kecamatan changed to:', selectedValue);
             
             if (selectedValue) {
                 populateKelurahan(selectedValue);
@@ -158,7 +158,7 @@ $(document).ready(function() {
 
     // Function for ADMIN - uses database data
     function loadRestrictedData(kecVal, kelVal) {
-        console.log('Loading restricted data for ADMIN user');
+        // console.log('Loading restricted data for ADMIN user');
         
         // Populate kecamatan from database
         let kecOptions = '<option value="">Pilih Kecamatan</option>';
@@ -188,7 +188,7 @@ $(document).ready(function() {
 
     // Helper function to update kelurahan dropdown for ADMIN
     function updateRestrictedKelurahanDropdown(selectedKec, selectedKel) {
-        console.log('Updating kelurahan for restricted user, kecamatan:', selectedKec);
+        // console.log('Updating kelurahan for restricted user, kecamatan:', selectedKec);
         
         if (!userKelurahanData.kelurahan_by_kecamatan[selectedKec]) {
             $("#kel").html('<option value="">Tidak ada kelurahan tersedia</option>');

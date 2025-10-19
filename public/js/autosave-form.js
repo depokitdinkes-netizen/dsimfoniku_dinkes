@@ -97,7 +97,7 @@ class AutoSaveForm {
                 this.onSave(formData);
             }
             
-            console.log('Form data auto-saved');
+            // console.log('Form data auto-saved');
         } catch (error) {
             console.error('Error saving form data:', error);
         }
@@ -127,7 +127,7 @@ class AutoSaveForm {
                 this.onRestore(formData);
             }
             
-            console.log('Form data restored from auto-save');
+            // console.log('Form data restored from auto-save');
             return true;
             
         } catch (error) {
@@ -236,7 +236,7 @@ class AutoSaveForm {
             localStorage.removeItem(this.storageKey);
             localStorage.removeItem(this.storageKey + '_timestamp');
             this.lastSaveData = '';
-            console.log('Auto-save data cleared');
+            // console.log('Auto-save data cleared');
         } catch (error) {
             console.error('Error clearing saved data:', error);
         }
@@ -273,11 +273,11 @@ $(document).ready(function() {
             excludeFields: ['_token', '_method', 'dokumen_slhs'], // Exclude file uploads
             onSave: function(data) {
                 // Optional: tampilkan indikator saving
-                console.log('Auto-saved:', Object.keys(data).length, 'fields');
+                // console.log('Auto-saved:', Object.keys(data).length, 'fields');
             },
             onRestore: function(data) {
                 // Optional: trigger events setelah restore
-                console.log('Restored:', Object.keys(data).length, 'fields');
+                // console.log('Restored:', Object.keys(data).length, 'fields');
                 
                 // Trigger events untuk dependent dropdowns
                 setTimeout(() => {
@@ -292,14 +292,14 @@ $(document).ready(function() {
 window.clearAutoSave = function() {
     if (window.autoSaveForm) {
         window.autoSaveForm.clearSavedData();
-        console.log('Auto-save data cleared manually');
+        // console.log('Auto-save data cleared manually');
     }
 };
 
 window.checkAutoSave = function() {
     if (window.autoSaveForm) {
         const hasSaved = window.autoSaveForm.hasSavedData();
-        console.log('Has saved data:', hasSaved);
+        // console.log('Has saved data:', hasSaved);
         return hasSaved;
     }
     return false;
@@ -308,14 +308,14 @@ window.checkAutoSave = function() {
 window.manualSaveForm = function() {
     if (window.autoSaveForm) {
         window.autoSaveForm.manualSave();
-        console.log('Manual save triggered');
+        // console.log('Manual save triggered');
     }
 };
 
 window.manualRestoreForm = function() {
     if (window.autoSaveForm) {
         const restored = window.autoSaveForm.manualRestore();
-        console.log('Manual restore triggered:', restored);
+        // console.log('Manual restore triggered:', restored);
         return restored;
     }
     return false;

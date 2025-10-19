@@ -92,7 +92,8 @@ class EnsureAdminAccessOwnData
                     
                     // Admin hanya bisa edit/delete/export PDF data miliknya sendiri
                     // Data guest (user_id = 3) atau data admin lain tidak bisa diedit/export PDF
-                    if ($model->user_id !== $user->id) {
+                    // Gunakan loose comparison (!=) untuk menghindari masalah tipe data
+                    if ((int)$model->user_id !== (int)$user->id) {
                         if ($isExportPdf) {
                             abort(403, 'Access denied. You can only export PDF for your own data.');
                         } else {

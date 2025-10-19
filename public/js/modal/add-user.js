@@ -104,7 +104,7 @@ function updateKelurahanOptionsModal() {
         }
     });
     
-    console.log('Selected kelurahan in modal:', selectedKelurahan);
+    // console.log('Selected kelurahan in modal:', selectedKelurahan);
     
     // Update all kelurahan selects
     kelurahanSelects.forEach(select => {

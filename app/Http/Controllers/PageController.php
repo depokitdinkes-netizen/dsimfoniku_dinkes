@@ -1165,17 +1165,37 @@ class PageController extends Controller {
             session()->put('dpp', 5);
         }
 
+        // Get current user info for sorting
+        $currentUser = Auth::user();
+        $currentUserId = $currentUser->id;
+        $isAdmin = $currentUser->role === 'ADMIN';
+
         // Get all inspections and apply filters
         $inspections = $this->inspectionResults()
-            ->sortByDesc('updated_at')
             ->when($request['s'], fn($items) => $items->filter(fn($item) => stripos($item['name'], $request['s']) !== false))
             ->when($request['my'], fn($items) => $items->filter(fn($item) => Carbon::parse($item['date'])->format('Y-m') === $request['my']))
             ->when($request['ft'], fn($items) => $items->filter(fn($item) => in_array($item['form'], $request['ft'])))
             ->when($request['kec'], fn($items) => $items->filter(fn($item) => $item['kecamatan'] === $request['kec']))
             ->when($request['kel'], fn($items) => $items->filter(fn($item) => in_array($item['kelurahan'], $request['kel'])))
             ->when($request['jenis_sekolah'], fn($items) => $items->filter(fn($item) => $item['form'] === 'sekolah' && $item['type'] === $request['jenis_sekolah']))
-            ->when($request['slhs_status'], fn($items) => $items->filter(fn($item) => $this->getSlhsStatus($item) === $request['slhs_status']))
-            ->values()->toArray();
+            ->when($request['slhs_status'], fn($items) => $items->filter(fn($item) => $this->getSlhsStatus($item) === $request['slhs_status']));
+
+        // Apply sorting based on user role
+        if ($isAdmin) {
+            // ADMIN: Prioritaskan form milik sendiri, kemudian urutkan berdasarkan tanggal
+            $inspections = $inspections->sortBy([
+                // Prioritas 1: Form milik admin yang login muncul paling atas
+                // Jika user_id sama dengan current user, nilai = 0, jika tidak = 1
+                fn($item) => (isset($item['user_id']) && (int)$item['user_id'] === $currentUserId) ? 0 : 1,
+                // Prioritas 2: Urutkan berdasarkan updated_at terbaru (descending)
+                fn($item) => Carbon::parse($item['updated_at'])->timestamp * -1
+            ]);
+        } else {
+            // SUPERADMIN dan role lainnya: Hanya urutkan berdasarkan tanggal (seperti sebelumnya)
+            $inspections = $inspections->sortByDesc('updated_at');
+        }
+
+        $inspections = $inspections->values()->toArray();
 
         $total_records = count($inspections);
         $dpp_value = (int) session()->get('dpp');

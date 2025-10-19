@@ -89,7 +89,7 @@ $(document).ready(function() {
 
     // Function for ADMIN - uses database data
     function loadRestrictedData(kecVal, kelVal) {
-        console.log('Loading restricted data for ADMIN user');
+        // console.log('Loading restricted data for ADMIN user');
         
         // Populate kecamatan from database
         let kecOptions = '<option value="">Pilih Kecamatan</option>';
@@ -118,7 +118,7 @@ $(document).ready(function() {
 
     // Helper function to update kelurahan dropdown for ADMIN
     function updateRestrictedKelurahanDropdown(selectedKec, selectedKel) {
-        console.log('Updating kelurahan for restricted user, kecamatan:', selectedKec);
+        // console.log('Updating kelurahan for restricted user, kecamatan:', selectedKec);
         
         if (!userKelurahanData.kelurahan_by_kecamatan[selectedKec]) {
             $("#kel").html('<option value="">Tidak ada kelurahan tersedia</option>');

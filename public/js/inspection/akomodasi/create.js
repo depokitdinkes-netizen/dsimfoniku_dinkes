@@ -81,16 +81,16 @@ function initializeKecamatanDropdown() {
 
     // If superadmin, keep default behavior (getDistrictsAndVillages.js will handle it)
     if (userKelurahanData && userKelurahanData.is_superadmin) {
-        console.log('User is SUPERADMIN, allowing access to all kecamatan/kelurahan');
+        // console.log('User is SUPERADMIN, allowing access to all kecamatan/kelurahan');
         // Let getDistrictsAndVillages.js do its job
         return;
     }
 
     // For ADMIN, override the dropdown with restricted data
     if (userKelurahanData && !userKelurahanData.is_superadmin) {
-        console.log('User is ADMIN, restricting to assigned areas');
-        console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
-        console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
+        // console.log('User is ADMIN, restricting to assigned areas');
+        // console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
+        // console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
         
         // Override kecamatan dropdown
         populateRestrictedKecamatan(kecamatanSelect, kelurahanSelect);
@@ -120,12 +120,12 @@ function populateRestrictedKecamatan(kecamatanSelect, kelurahanSelect) {
             kecamatanSelect.appendChild(option);
         });
         
-        console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
+        // console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
         
         // Auto-select if only 1 kecamatan
         if (userKelurahanData.kecamatan.length === 1) {
             autoSelectedKecamatan = userKelurahanData.kecamatan[0];
-            console.log(`Auto-selecting kecamatan: ${autoSelectedKecamatan}`);
+            // console.log(`Auto-selecting kecamatan: ${autoSelectedKecamatan}`);
         }
     } else {
         console.warn('No kecamatan data available for this user');
@@ -176,7 +176,7 @@ function updateRestrictedKelurahanDropdown(selectedKecamatan, kelurahanSelect) {
         });
 
         kelurahanSelect.disabled = false;
-        console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
+        // console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
     } else {
         kelurahanSelect.disabled = true;
         console.warn(`No kelurahan data for ${selectedKecamatan}`);

@@ -46,9 +46,9 @@ class SetSecurityHeadersStrict
         // Referrer-Policy
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // Permissions-Policy
+        // Permissions-Policy - Allow geolocation for same origin
         $response->headers->set('Permissions-Policy',
-            'geolocation=(), microphone=(), camera=()'
+            'geolocation=(self), microphone=(), camera=()'
         );
 
         return $response;

@@ -31,7 +31,7 @@ async function fetchUserKelurahan() {
     // Check if user is authenticated by checking if window.isAuthenticated exists
     // This should be set from the Blade template
     if (typeof window.isAuthenticated === 'undefined' || !window.isAuthenticated) {
-        console.log('User not authenticated, skipping API call');
+        // console.log('User not authenticated, skipping API call');
         isRestrictedUser = false;
         return;
     }
@@ -48,7 +48,7 @@ async function fetchUserKelurahan() {
         if (!response.ok) {
             // If unauthorized, user is not logged in
             if (response.status === 401) {
-                console.log('User not authenticated (401), skipping restrictions');
+                // console.log('User not authenticated (401), skipping restrictions');
                 isRestrictedUser = false;
                 return;
             }
@@ -60,8 +60,8 @@ async function fetchUserKelurahan() {
         if (result.success) {
             userKelurahanData = result.data;
             isRestrictedUser = !result.data.is_superadmin;
-            console.log('User Kelurahan Data:', userKelurahanData);
-            console.log('Is Restricted User (ADMIN):', isRestrictedUser);
+            // console.log('User Kelurahan Data:', userKelurahanData);
+            // console.log('Is Restricted User (ADMIN):', isRestrictedUser);
             
             // Initialize dropdowns after data is loaded
             initializeKecamatanDropdown();
@@ -89,16 +89,16 @@ function initializeKecamatanDropdown() {
 
     // If superadmin, keep default behavior (getDistrictsAndVillages.js will handle it)
     if (userKelurahanData && userKelurahanData.is_superadmin) {
-        console.log('User is SUPERADMIN, allowing access to all kecamatan/kelurahan');
+        // console.log('User is SUPERADMIN, allowing access to all kecamatan/kelurahan');
         // Let getDistrictsAndVillages.js do its job
         return;
     }
 
     // For ADMIN, override the dropdown with restricted data
     if (userKelurahanData && !userKelurahanData.is_superadmin) {
-        console.log('User is ADMIN, restricting to assigned areas');
-        console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
-        console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
+        // console.log('User is ADMIN, restricting to assigned areas');
+        // console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
+        // console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
         
         // Override kecamatan dropdown
         populateRestrictedKecamatan(kecamatanSelect, kelurahanSelect);
@@ -128,12 +128,12 @@ function populateRestrictedKecamatan(kecamatanSelect, kelurahanSelect) {
             kecamatanSelect.appendChild(option);
         });
         
-        console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
+        // console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
         
         // Auto-select if only 1 kecamatan
         if (userKelurahanData.kecamatan.length === 1) {
             autoSelectedKecamatan = userKelurahanData.kecamatan[0];
-            console.log(`Auto-selecting kecamatan: ${autoSelectedKecamatan}`);
+            // console.log(`Auto-selecting kecamatan: ${autoSelectedKecamatan}`);
         }
     } else {
         console.warn('No kecamatan data available for this user');
@@ -184,7 +184,7 @@ function updateRestrictedKelurahanDropdown(selectedKecamatan, kelurahanSelect) {
         });
 
         kelurahanSelect.disabled = false;
-        console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
+        // console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
     } else {
         kelurahanSelect.disabled = true;
         console.warn(`No kelurahan data for ${selectedKecamatan}`);

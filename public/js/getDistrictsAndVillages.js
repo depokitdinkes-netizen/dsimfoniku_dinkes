@@ -11,10 +11,10 @@ $(document).ready(async function () {
     
     // Wait for user data to be loaded first (if function exists)
     if (typeof window.waitForUserData === 'function') {
-        console.log('Waiting for user data to load...');
+        // console.log('Waiting for user data to load...');
         try {
             await window.waitForUserData();
-            console.log('User data loaded successfully');
+            // console.log('User data loaded successfully');
         } catch (error) {
             console.error('Error loading user data:', error);
         }
@@ -22,18 +22,18 @@ $(document).ready(async function () {
     
     // Check if user should have restricted access (for ADMIN users)
     if (typeof window.shouldRestrictKelurahan === 'function' && window.shouldRestrictKelurahan()) {
-        console.log('User is ADMIN - skipping getDistrictsAndVillages.js initialization');
+        // console.log('User is ADMIN - skipping getDistrictsAndVillages.js initialization');
         isInitialized = true;
         return;
     }
     
-    console.log('User is SUPERADMIN or GUEST - proceeding with normal initialization');
+    // console.log('User is SUPERADMIN or GUEST - proceeding with normal initialization');
     isInitialized = true;
 
     // Load fallback data if available
     function loadFallbackData() {
         if (window.FALLBACK_KECAMATAN) {
-            console.log('Using fallback kecamatan data');
+            // console.log('Using fallback kecamatan data');
             kecamatan = window.FALLBACK_KECAMATAN;
             
             let options = '<option value="">Pilih Kecamatan</option>';
@@ -122,14 +122,14 @@ $(document).ready(async function () {
                 enableDropdown('#kec-admin'); // Enable admin dropdown juga
                 retryCount = 0; // Reset retry count on success
                 
-                console.log('Kecamatan data loaded successfully from API:', districts.length, 'items');
+                // console.log('Kecamatan data loaded successfully from API:', districts.length, 'items');
             })
             .catch((error) => {
                 console.error('Error loading kecamatan from API:', error);
                 retryCount++;
 
                 if (retryCount <= MAX_RETRIES) {
-                    console.log(`Retrying to load kecamatan... (${retryCount}/${MAX_RETRIES})`);
+                    // console.log(`Retrying to load kecamatan... (${retryCount}/${MAX_RETRIES})`);
                     setTimeout(() => {
                         initKecamatan();
                     }, 2000 * retryCount); // Exponential backoff
@@ -186,14 +186,14 @@ $(document).ready(async function () {
                     $('#kel').prop('disabled', false);
                 }
                 
-                console.log('Kelurahan data loaded successfully from API:', villages.length, 'items');
+                // console.log('Kelurahan data loaded successfully from API:', villages.length, 'items');
             })
             .catch((error) => {
                 console.error('Error loading kelurahan from API:', error);
                 
                 // Try fallback data
                 if (window.FALLBACK_KELURAHAN && window.FALLBACK_KELURAHAN[selectedKec.id]) {
-                    console.log('Using fallback kelurahan data for', kecamatanName);
+                    // console.log('Using fallback kelurahan data for', kecamatanName);
                     const fallbackVillages = window.FALLBACK_KELURAHAN[selectedKec.id];
                     
                     let options = '<option value="">Pilih Kelurahan</option>';
@@ -219,7 +219,7 @@ $(document).ready(async function () {
                     
                     // Retry once after 2 seconds
                     setTimeout(() => {
-                        console.log('Retrying to load kelurahan...');
+                        // console.log('Retrying to load kelurahan...');
                         initKelurahan(kecamatanName);
                     }, 2000);
                 }
@@ -270,14 +270,14 @@ $(document).ready(async function () {
                     $('#kel-admin').prop('disabled', false);
                 }
                 
-                console.log('Kelurahan admin data loaded successfully from API:', villages.length, 'items');
+                // console.log('Kelurahan admin data loaded successfully from API:', villages.length, 'items');
             })
             .catch((error) => {
                 console.error('Error loading kelurahan admin from API:', error);
                 
                 // Try fallback data
                 if (window.FALLBACK_KELURAHAN && window.FALLBACK_KELURAHAN[selectedKec.id]) {
-                    console.log('Using fallback kelurahan data for admin', kecamatanName);
+                    // console.log('Using fallback kelurahan data for admin', kecamatanName);
                     const fallbackVillages = window.FALLBACK_KELURAHAN[selectedKec.id];
                     
                     let options = '<option value="">Pilih Kelurahan</option>';
@@ -303,7 +303,7 @@ $(document).ready(async function () {
                     
                     // Retry once after 2 seconds
                     setTimeout(() => {
-                        console.log('Retrying to load kelurahan admin...');
+                        // console.log('Retrying to load kelurahan admin...');
                         initKelurahanAdmin(kecamatanName);
                     }, 2000);
                 }
@@ -378,13 +378,13 @@ window.checkDropdownStatus = function() {
     const kecOptions = $('#kec option').length;
     const kelOptions = $('#kel option').length;
     
-    console.log('Dropdown Status:', {
-        kecamatan: kecStatus,
-        kelurahan: kelStatus,
-        kecamatanOptions: kecOptions,
-        kelurahanOptions: kelOptions,
-        dataLoaded: kecamatan.length > 0
-    });
+    // console.log('Dropdown Status:', {
+    //     kecamatan: kecStatus,
+    //     kelurahan: kelStatus,
+    //     kecamatanOptions: kecOptions,
+    //     kelurahanOptions: kelOptions,
+    //     dataLoaded: kecamatan.length > 0
+    // });
     
     return {
         kecamatan: kecStatus,

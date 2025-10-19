@@ -3,7 +3,7 @@ $(document).ready(function() {
     let kecVal = window.tempatIbadahFormData?.kecamatan || '';
     let kelVal = window.tempatIbadahFormData?.kelurahan || '';
 
-    console.log('Tempat Ibadah edit form initialized with:', { kecVal, kelVal });
+    // console.log('Tempat Ibadah edit form initialized with:', { kecVal, kelVal });
 
     let checkKec = setInterval(function() {
         if (kecamatan.length > 0) {
@@ -33,7 +33,7 @@ $(document).ready(function() {
                             $("#kel").html('<option>Pilih Kelurahan</option>');
                             $("#kel").html($("#kel").html() + options);
                             
-                            console.log('Villages loaded successfully for kecamatan:', kecVal);
+                            // console.log('Villages loaded successfully for kecamatan:', kecVal);
                         })
                         .catch((error) => {
                             console.error('Error loading villages:', error);

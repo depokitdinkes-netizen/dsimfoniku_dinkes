@@ -65,7 +65,7 @@ function initMap(lat = -6.2088, lng = 106.8456) {
 function reverseGeocode(lat, lng) {
     const url = `/api/geocoding/reverse?lat=${lat}&lon=${lng}`;
     
-    console.log('Reverse geocoding for:', lat, lng);
+    // console.log('Reverse geocoding for:', lat, lng);
     
     fetch(url)
         .then(response => {
@@ -75,9 +75,9 @@ function reverseGeocode(lat, lng) {
             return response.json();
         })
         .then(data => {
-            console.log('Reverse geocode response:', data);
+            // console.log('Reverse geocode response:', data);
             if (data.success && data.data && data.data.display_name) {
-                console.log('Address found:', data.data.display_name);
+                // console.log('Address found:', data.data.display_name);
                 // Optionally update search input with address
                 const addressSearch = document.getElementById('address-search');
                 if (addressSearch) {
@@ -124,7 +124,7 @@ function searchAddress() {
                 return response.json();
             })
             .then(data => {
-                console.log('Search response:', data); // Debug log
+                // console.log('Search response:', data); // Debug log
                 if (data.success && data.data) {
                     displaySearchResults(data.data);
                 } else {
@@ -192,7 +192,7 @@ function selectSearchResult(result) {
 
 // Get current location
 function getCurrentLocation() {
-    console.log('getCurrentLocation() called');
+    // console.log('getCurrentLocation() called');
     
     if (!navigator.geolocation) {
         console.error('Geolocation not supported');
@@ -217,7 +217,7 @@ function getCurrentLocation() {
     btn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Mengambil lokasi...';
     btn.disabled = true;
     
-    console.log('Requesting geolocation...');
+    // console.log('Requesting geolocation...');
     
     // Flag to track if we got success (to prevent showing error alert after success)
     let gotSuccess = false;
@@ -225,7 +225,7 @@ function getCurrentLocation() {
     
     navigator.geolocation.getCurrentPosition(
         function(position) {
-            console.log('Geolocation success:', position);
+            // console.log('Geolocation success:', position);
             gotSuccess = true;
             
             // Clear any pending error alerts
@@ -240,7 +240,7 @@ function getCurrentLocation() {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             
-            console.log('Current location:', lat, lng);
+            // console.log('Current location:', lat, lng);
             
             // Update map view
             map.setView([lat, lng], 16);
@@ -265,7 +265,7 @@ function getCurrentLocation() {
             
             // Don't show error if we already got success
             if (gotSuccess) {
-                console.log('Ignoring error because we already got success');
+                // console.log('Ignoring error because we already got success');
                 return;
             }
             
@@ -274,7 +274,7 @@ function getCurrentLocation() {
             errorTimeout = setTimeout(() => {
                 // Double check if success happened during the delay
                 if (gotSuccess) {
-                    console.log('Not showing error because success happened during delay');
+                    // console.log('Not showing error because success happened during delay');
                     return;
                 }
                 

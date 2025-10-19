@@ -113,7 +113,7 @@ function loadDataFromAPI(kecVal, kelVal) {
                 $("#kel").html(options);
                 $("#kel").prop('disabled', false);
                 
-                console.log('Kelurahan loaded successfully:', villages.length, 'items');
+                // console.log('Kelurahan loaded successfully:', villages.length, 'items');
             })
             .catch((error) => {
                 console.error('Error loading villages:', error);
@@ -126,16 +126,16 @@ function loadDataFromAPI(kecVal, kelVal) {
     let checkKec = setInterval(function() {
         if (populateKecamatan()) {
             clearInterval(checkKec);
-            console.log('Kecamatan data loaded and populated');
+            // console.log('Kecamatan data loaded and populated');
         } else {
-            console.log('Waiting for kecamatan data...');
+            // console.log('Waiting for kecamatan data...');
         }
     }, 500);
     
     // Handle kecamatan change event
     $("#kec").on('change', function() {
         let selectedValue = $(this).val();
-        console.log('Kecamatan changed to:', selectedValue);
+        // console.log('Kecamatan changed to:', selectedValue);
         
         if (selectedValue) {
             populateKelurahan(selectedValue);
@@ -170,9 +170,9 @@ function loadRestrictedData(kecVal, kelVal) {
         return;
     }
 
-    console.log('Loading restricted data for ADMIN');
-    console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
-    console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
+    // console.log('Loading restricted data for ADMIN');
+    // console.log('Assigned Kecamatan:', userKelurahanData.kecamatan);
+    // console.log('Assigned Kelurahan by Kecamatan:', userKelurahanData.kelurahan_by_kecamatan);
     
     // Clear existing options
     kecamatanSelect.innerHTML = '';
@@ -196,7 +196,7 @@ function loadRestrictedData(kecVal, kelVal) {
             kecamatanSelect.appendChild(option);
         });
         
-        console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
+        // console.log(`Populated ${userKelurahanData.kecamatan.length} kecamatan options`);
     }
 
     // Load kelurahan for selected kecamatan
@@ -239,7 +239,7 @@ function updateRestrictedKelurahanDropdown(selectedKecamatan, kelurahanSelect, p
         });
 
         kelurahanSelect.disabled = false;
-        console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
+        // console.log(`Populated ${kelurahanList.length} kelurahan options for ${selectedKecamatan}`);
         
         // Show info message for ADMIN
         if ($('#kelurahan-restriction-info').length === 0) {

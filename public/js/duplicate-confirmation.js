@@ -53,6 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const duplicateButton = document.querySelector('button[onclick*="showDuplicateConfirmation"]');
     if (duplicateButton && !window.duplicateSetup) {
         window.duplicateSetup = true;
-        console.log('Duplicate confirmation utility loaded');
+        // console.log('Duplicate confirmation utility loaded');
     }
 });
